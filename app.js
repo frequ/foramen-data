@@ -88,8 +88,6 @@
 				$scope.$root.$broadcast('gotFileName', name);
 			}
 
-			$('#overlay').show();
-
 		};
 
 		$scope.getFileNames();
@@ -108,11 +106,21 @@
 
 		$scope.forceShowUnplayedGames = false;
 
+		$scope.modalShowing = false;
+		$scope.loadingShowing = false;
+
+		$scope.showChartsModal = function(user){
+			console.log('charts modal', user);
+			$scope.modalShowing = true;
+			$('body').addClass('modal-open');
+		};
+
 		$scope.scrollTop = function(){
 				$anchorScroll(0);
 		};
 
 		$scope.$on('gotFileName', function(event, filename, multiple){
+			$scope.loadingShowing = true;
 			$scope.getData(filename, multiple);
 		});
 
@@ -125,10 +133,6 @@
 				dataPromise
 					.success(function(data, status, headers, config){
 						$scope.parseData(data);
-						console.log(data);
-						$('#overlay').css('display', 'block;');
-						$('#data').css('display', 'block');
-
 					})
 					.error(function(data){
 						console.log('error fetching data');
@@ -153,11 +157,7 @@
 					angular.forEach(tmpResult, function(values){
 						data = data.concat(values);
 					});
-
 					$scope.parseData(data);
-					$('#overlay').css('display', 'block;');
-					$('#data').css('display', 'block');
-
 				});
 			}
 
@@ -185,6 +185,8 @@
 		};
 
 		$scope.parseData = function(data){
+			$('#data').css('display', 'block');
+
 			$scope.users = [];
 			$scope.smallestDate = undefined;
 			$scope.largestDate = undefined;
@@ -313,7 +315,7 @@
 								for(l = 0; l < users[j].data[k].plays.length; l++){
 
 									//group
-									if(!users[j].group && users[j].data[k].plays[l]){
+									if(typeof users[j].group === "undefined" && users[j].data[k].plays[l]){
 										users[j].group = users[j].data[k].plays[l].groupName;
 									}
 
@@ -399,9 +401,8 @@
 				}
 			}
 			$scope.users = users;
-			console.log($scope.users);
 
-			$('#overlay').css('display','none');
+			$scope.loadingShowing = false;
 		};
 	});
 

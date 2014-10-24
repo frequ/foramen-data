@@ -13,7 +13,7 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 	<link href="css/main.css" rel="stylesheet">
 </head>
-<body>
+<body ng-controller="DataController as dataCtrl">
 
   <div id="selection" ng-controller="FilesController as filesCtrl">
 		<label>Valitse tiedosto(t) :</label>
@@ -23,7 +23,7 @@
 		<button class="btn btn-default" ng-click="passFileName(fileName)">Hae data</button>
   </div>
 
-	<div id="data" ng-controller="DataController as dataCtrl" ng-cloak scroll ng-class="{min:boolChangeClass}">
+	<div id="data" ng-cloak scroll ng-class="{min:boolChangeClass}">
 
 		<div class="header clearfix">
 			<h1>Harjoitukset ajalta {{smallestDate | date: 'd.M'}} - {{largestDate | date: 'd.M.yyyy'}}</h1>
@@ -32,9 +32,12 @@
 				<button class="btn btn-default" ng-click="scrollTop()">Takaisin ylös</button>
 			</nav>
 		</div>
+		loading: {{loadingShowing}}, modal: {{modalShowing}}
+		<div class="week clearfix" ng-repeat="user in users track by $index ">
+			<h2>{{user.name}} <small>{{user.group}}</small>
+				<button class="btn btn-primary" ng-click="showChartsModal(user)">Boom</button>
+			</h2>
 
-		<div class="week clearfix" ng-repeat="user in users track by $index">
-			<h2>{{user.name}} <small>{{user.group}}</small></h2>
 			<table class="table table-striped table-bordered">
 				<tr>
 					<th><a ng-click="orderByField='game'; reverseSort = !reverseSort">
@@ -75,7 +78,8 @@
 					</a></th>
 				</tr>
 
-				<tr ng-repeat="data in user.data | orderBy: orderByField: reverseSort" ng-show="forceShowUnplayedGames || data.plays.length > 0">
+				<tr ng-repeat="data in user.data | orderBy: orderByField: reverseSort"
+						ng-show="forceShowUnplayedGames || data.plays.length > 0">
 					<td class="align-left">{{data.game}}</td>
 					<td>{{data.plays.length}}</td>
 					<td>{{data.plays.length - data.unfinished}}</td>
@@ -89,6 +93,7 @@
 					<td>{{data.exerciseDays.length}}</td>
 					<td>{{data.duration / data.exerciseDays.length | readableTime}}</td>
 				</tr>
+
 
 				<tr class="yellow-row">
 					<td class="align-left">Kaikki yhteensä</td>
@@ -109,13 +114,18 @@
 		</div>
 
 	</div>
+	loading:{{loadingShowing}}, modal:{{modalShowing}}
+	<div id="overlay" ng-show="modalShowing || loadingShowing"></div>
 
-	<div id="overlay">
-		<div class="loading">
-			Ladataan<br/>
-			<div class="loading-spinner"></div>
-		</div>
+	<div class="loading" ng-show="loadingShowing">
+		Ladataan<br/>
+		<div class="loading-spinner"></div>
 	</div>
+
+	<div class="modal-content" ng-show="modalShowing">
+		tyhmä modaali
+	</div>
+
 
 </body>
 
