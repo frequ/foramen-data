@@ -82,8 +82,14 @@
 
 
 		$scope.passFileName = function(name){
+			if(name.length > 1){
+					$scope.$root.$broadcast('gotFileName', name, true);
+			}else{
+				$scope.$root.$broadcast('gotFileName', name);
+			}
+
 			$('#overlay').show();
-			$scope.$root.$broadcast('gotFileName', name);
+
 		};
 
 		$scope.getFileNames();
@@ -91,7 +97,7 @@
 	})
 
 
-	.controller('DataController', function($scope, $http, $anchorScroll){
+	.controller('DataController', function($scope, $http, $anchorScroll, $q){
 
 		$scope.orderByField = 'game';
 		$scope.reverseSort = false;
@@ -106,25 +112,55 @@
 				$anchorScroll(0);
 		};
 
-		$scope.$on('gotFileName', function(event, filename){
-			$scope.getData(filename);
+		$scope.$on('gotFileName', function(event, filename, multiple){
+			$scope.getData(filename, multiple);
 		});
 
-		$scope.getData = function(filename){
+		$scope.getData = function(filename, multiple){
+			console.log('getdata', filename, multiple);
+			var datas = [];
+			if(!multiple){
+				var dataPromise = $http.get('json/'+filename);
 
-			var dataPromise = $http.get('json/'+filename);
+				dataPromise
+					.success(function(data, status, headers, config){
+						$scope.parseData(data);
+						console.log(data);
+						$('#overlay').css('display', 'block;');
+						$('#data').css('display', 'block');
 
-			dataPromise
-				.success(function(data, status, headers, config){
+					})
+					.error(function(data){
+						console.log('error fetching data');
+					});
+
+			}else{
+				var jsons = [];
+				var files = filename;
+
+				for(var i = 0; i < files.length; i++)(
+					jsons[i] = $http.get('json/'+files[i])
+				);
+
+				$q.all(jsons).then(function(result){
+					var tmp = [];
+					angular.forEach(result, function(response){
+						tmp.push(response.data);
+					});
+					return tmp;
+				}).then(function(tmpResult){
+					var data = [];
+					angular.forEach(tmpResult, function(values){
+						data = data.concat(values);
+					});
+
 					$scope.parseData(data);
-
 					$('#overlay').css('display', 'block;');
 					$('#data').css('display', 'block');
 
-				})
-				.error(function(data){
-					console.log('error fetching data');
 				});
+			}
+
 		};
 
 
@@ -246,10 +282,10 @@
 			for(i = 0; i < data.length; i++){
 				for(j = 0; j < users.length; j++){
 
-					if(data[i].playerName === users[j].name){
+					if(data[i].userRole === "Kuntoutuja" && data[i].playerName === users[j].name){
 						for(k = 0; k < users[j].data.length; k++){
 
-							if(data[i].gameTitle === users[j].data[k].game){
+							if(data[i].gameTitle === users[j].data[k].game ){
 								users[j].data[k].plays.push(data[i]);
 
 								//gametime
@@ -364,6 +400,7 @@
 			}
 			$scope.users = users;
 			console.log($scope.users);
+
 			$('#overlay').css('display','none');
 		};
 	});

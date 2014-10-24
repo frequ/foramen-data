@@ -16,11 +16,11 @@
 <body>
 
   <div id="selection" ng-controller="FilesController as filesCtrl">
-		<label>Valitse tarkasteltava tiedosto</label>
-    <select name="selectFileFromDir" class="form-control" ng-model="fileName" ng-options="file as file for file in files" >
+		<label>Valitse tiedosto(t) :</label>
+    <select name="selectFileFromDir" class="form-control" ng-model="fileName" ng-options="file as file for file in files" multiple >
 		</select>
 		<br/>
-		<button class="btn btn-default" ng-click="passFileName(fileName)">Hae tiedoston data</button>
+		<button class="btn btn-default" ng-click="passFileName(fileName)">Hae data</button>
   </div>
 
 	<div id="data" ng-controller="DataController as dataCtrl" ng-cloak scroll ng-class="{min:boolChangeClass}">
@@ -33,7 +33,7 @@
 			</nav>
 		</div>
 
-		<div class="week clearfix" ng-repeat="user in users">
+		<div class="week clearfix" ng-repeat="user in users track by $index">
 			<h2>{{user.name}} <small>{{user.group}}</small></h2>
 			<table class="table table-striped table-bordered">
 				<tr>
