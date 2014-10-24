@@ -32,7 +32,7 @@
 				<button class="btn btn-default" ng-click="scrollTop()">Takaisin ylös</button>
 			</nav>
 		</div>
-		loading: {{loadingShowing}}, modal: {{modalShowing}}
+
 		<div class="week clearfix" ng-repeat="user in users track by $index ">
 			<h2>{{user.name}} <small>{{user.group}}</small>
 				<button class="btn btn-primary" ng-click="showChartsModal(user)">Boom</button>
@@ -112,9 +112,9 @@
 			</table>
 			<hr/>
 		</div>
-
 	</div>
-	loading:{{loadingShowing}}, modal:{{modalShowing}}
+
+	{{modalShowing}}
 	<div id="overlay" ng-show="modalShowing || loadingShowing"></div>
 
 	<div class="loading" ng-show="loadingShowing">
@@ -122,8 +122,9 @@
 		<div class="loading-spinner"></div>
 	</div>
 
-	<div class="modal-content" ng-show="modalShowing">
-		tyhmä modaali
+	<div ng-controller="ChartsController as chartsCtrl" class="modal-content" ng-show="modalShowing">
+		{{modalUser.name}}
+		<button class="btn btn-default pull-right" ng-click="dismissModal()">Sulje</button>
 	</div>
 
 
@@ -135,5 +136,6 @@
 
 <!-- Place your scripts here -->
 <script type="text/javascript" src="app.js"></script>
+<script type="text/javascript" src="lib/zingchart-html5-min.js"></script>
 
 </html>

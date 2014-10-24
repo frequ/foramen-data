@@ -51,7 +51,7 @@
 		};
 	}])
 
-	.controller('FilesController', function($scope, $http){
+	.controller('FilesController', ['$scope', '$http', function($scope, $http){
 
 		var files = [];
 		var file;
@@ -75,11 +75,8 @@
 				file = this.href.replace(window.location.host, "").replace("http:///","").replace("foramen-data/","");
 				files.push(file);
 			});
-
 			$scope.files = files;
-
 		};
-
 
 		$scope.passFileName = function(name){
 			if(name.length > 1){
@@ -87,15 +84,12 @@
 			}else{
 				$scope.$root.$broadcast('gotFileName', name);
 			}
-
 		};
-
 		$scope.getFileNames();
+	}])
 
-	})
 
-
-	.controller('DataController', function($scope, $http, $anchorScroll, $q){
+	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', function($scope, $http, $anchorScroll, $q){
 
 		$scope.orderByField = 'game';
 		$scope.reverseSort = false;
@@ -109,11 +103,19 @@
 		$scope.modalShowing = false;
 		$scope.loadingShowing = false;
 
+		$scope.dismissModal = function(){
+			$scope.modalShowing = false;
+			$('body').removeClass('modal-open');
+		};
+
 		$scope.showChartsModal = function(user){
-			console.log('charts modal', user);
+			$scope.modalUser = user;
+			$scope.$root.$broadcast('chartModal', user);
+
 			$scope.modalShowing = true;
 			$('body').addClass('modal-open');
 		};
+
 
 		$scope.scrollTop = function(){
 				$anchorScroll(0);
@@ -401,9 +403,19 @@
 				}
 			}
 			$scope.users = users;
-
 			$scope.loadingShowing = false;
 		};
-	});
+
+	}])
+
+	.controller('ChartsController', ['$scope', function($scope){
+
+		$scope.$on('chartModal', function(event, user){
+			$scope.modalUser = user;
+
+			console.log(user);
+		});
+
+	}]);
 
 })();
