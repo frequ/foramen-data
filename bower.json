@@ -1,0 +1,24 @@
+{
+  "name": "Foramen-data",
+  "version": "0.0.0",
+  "homepage": "https://github.com/frequ/foramen-data",
+  "authors": [
+    "frequ <samppa.valkama@gmail.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "lib",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.1",
+    "angular-charts": "~0.2.6",
+    "angular": "*",
+    "angular-bootstrap": "~0.11.2"
+  }
+}

@@ -1,0 +1,24 @@
+<div ng-controller="ChartsController as chartsCtrl" ng-init="modalVisible=true;">
+  <button class="btn btn-default pull-right" ng-click="close()">Sulje</button>
+
+  <div ng-if="modalVisible" id="chart" ac-chart="'pie'"
+    data-ac-data="gameComparisonData"
+    data-ac-config="gameComparisonConfig">
+  </div>
+  <div ng-show="chartError" class="chartError">
+    <h1>Käyttäjältä ei saatavilla dataa.</h1>
+    <button class="btn btn-default btn-lg" ng-click="close()">Sulje</button>
+  </div>
+
+  <div class="story">
+    <p>{{smallestDate}}</p>
+
+  </div>
+
+
+  <div class="modal-footer">
+    Menu between graphics here maybe?
+  </div>
+
+
+</div>

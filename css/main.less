@@ -1,11 +1,42 @@
 // out: main.css, compress: true
-body.modal-open{
-	overflow-y: hidden;
-}
-
 body{
 	a{
 		cursor: pointer;
+	}
+
+	.modal-lg{
+		width: 95%;
+	}
+
+	.ac-tooltip{
+		z-index:9999;
+	}
+
+	#chart{
+		padding: 0 20px;
+		width: 1000px;
+		height: 600px;
+		margin: 0 auto;
+
+		.ac-title{
+			font-size: 150%;
+			margin-bottom: 5px;
+		}
+		.ac-legend td{
+			padding-right: 3px;
+			text-align: left;
+		}
+	}
+
+	.chartError{
+		position: absolute;
+		width: 400px;
+		height: 50px;
+		left: 50%;
+		margin-left: -200px;
+		top: 40%;
+
+		text-align: center;
 	}
 
 	.min .header{
@@ -74,21 +105,6 @@ body{
 	.week{
 		padding: 0 30px;
 	}
-}
-
-.modal-content{
-	position: fixed;
-	top: 100px;
-	margin: 0 auto;
-	width: 80%;
-	left: 50%;
-	margin-left: -40%;
-	min-height: 500px;
-	background-color: #fff;
-	opacity: 1;
-	color: #000;
-	font-size: 300%;
-	text-align: center;
 }
 
 #overlay{

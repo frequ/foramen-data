@@ -2,7 +2,7 @@
 	"use strict";
 	/*global $:false, jQuery:false */
 
-	var app = angular.module('foramendata', [])
+	var app = angular.module('foramendata', ['ui.bootstrap','angularCharts','chartsCtrl'])
 
 	.directive("scroll", function($window) {
 		return function(scope, element, attr){
@@ -89,7 +89,7 @@
 	}])
 
 
-	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', function($scope, $http, $anchorScroll, $q){
+	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', '$modal', function($scope, $http, $anchorScroll, $q, $modal){
 
 		$scope.orderByField = 'game';
 		$scope.reverseSort = false;
@@ -100,22 +100,21 @@
 
 		$scope.forceShowUnplayedGames = false;
 
-		$scope.modalShowing = false;
-		$scope.loadingShowing = false;
+		$scope.openModal = function (user, size) {
+			$scope.user = user;
 
-		$scope.dismissModal = function(){
-			$scope.modalShowing = false;
-			$('body').removeClass('modal-open');
+			var modalInstance = $modal.open({
+				templateUrl: 'app/charts/charts.html',
+				controller: 'ModalInstanceController',
+				size: size,
+				backdrop: 'static',
+				resolve: {
+					items: function(){
+						return $scope.user;
+					}
+				}
+			});
 		};
-
-		$scope.showChartsModal = function(user){
-			$scope.modalUser = user;
-			$scope.$root.$broadcast('chartModal', user);
-
-			$scope.modalShowing = true;
-			$('body').addClass('modal-open');
-		};
-
 
 		$scope.scrollTop = function(){
 				$anchorScroll(0);
@@ -223,61 +222,61 @@
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						},
 						{	game: 'Jätkänshakki',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						},
 						{	game: 'Sudoku',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						},
 						{	game: 'Tunnista sanat',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						},
 						{	game: 'Päättele salasana',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						},
 						{	game: 'Muista viesti',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						},
 						{	game: 'Rakenna kuvio mallista',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						},
 						{	game: 'Muista näkemäsi esineet',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						},
 						{	game: 'Etsi kuvat',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						},
 						{	game: 'Muista kuulemasi sanat',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
+							durationsArr:[], exerciseDays:[], exercises: []
 						}
 					]
 				});
@@ -408,14 +407,15 @@
 
 	}])
 
-	.controller('ChartsController', ['$scope', function($scope){
+	.controller('ModalInstanceController', function($scope, $modalInstance, items, $rootScope){
 
-		$scope.$on('chartModal', function(event, user){
-			$scope.modalUser = user;
+		$rootScope.modalUser = items;
 
-			console.log(user);
-		});
+		$scope.close = function(){
+			$modalInstance.dismiss('close');
+		};
 
-	}]);
+	});
+
 
 })();
