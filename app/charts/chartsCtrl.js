@@ -25,11 +25,7 @@
         'y': [y],
         'tooltip': 'Harjoitteessa '+user.data[i].game+' harjoitteluaika '+y+'%'
         });
-
     }
-
-    console.log('series', gameLabels);
-    console.log('data', data);
 
     $scope.gameComparisonConfig  = {
       title: 'Harjoittelijan '+ user.name + ' harjoitteluajan jakautuminen:',

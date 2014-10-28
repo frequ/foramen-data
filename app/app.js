@@ -91,6 +91,11 @@
 
 	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', '$modal', function($scope, $http, $anchorScroll, $q, $modal){
 
+		$scope.setFilter = function(arr){
+			$scope.userRoleFilter = arr;
+			console.log('filtering by userRoles', arr);
+		};
+
 		$scope.orderByField = 'game';
 		$scope.reverseSort = false;
 
@@ -114,6 +119,12 @@
 					}
 				}
 			});
+
+			modalInstance.result.then(function(){
+			},function(){
+				$('.ac-tooltip').css('display','none');
+			});
+
 		};
 
 		$scope.scrollTop = function(){
@@ -222,61 +233,61 @@
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						},
 						{	game: 'Jätkänshakki',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						},
 						{	game: 'Sudoku',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						},
 						{	game: 'Tunnista sanat',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						},
 						{	game: 'Päättele salasana',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						},
 						{	game: 'Muista viesti',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						},
 						{	game: 'Rakenna kuvio mallista',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						},
 						{	game: 'Muista näkemäsi esineet',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						},
 						{	game: 'Etsi kuvat',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						},
 						{	game: 'Muista kuulemasi sanat',
 							plays: [], level1:0, level2:0,
 							level3:0, unfinished:0, duration:0, finishedPercentage:0,
 							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[], exercises: []
+							durationsArr:[], exerciseDays:[]
 						}
 					]
 				});
@@ -285,7 +296,7 @@
 			for(i = 0; i < data.length; i++){
 				for(j = 0; j < users.length; j++){
 
-					if(data[i].userRole === "Kuntoutuja" && data[i].playerName === users[j].name){
+					if($scope.userRoleFilter.indexOf(data[i].userRole) > -1 && data[i].playerName === users[j].name){
 						for(k = 0; k < users[j].data.length; k++){
 
 							if(data[i].gameTitle === users[j].data[k].game ){
@@ -403,6 +414,7 @@
 			}
 			$scope.users = users;
 			$scope.loadingShowing = false;
+			//console.log($scope.users);
 		};
 
 	}])
