@@ -7,12 +7,10 @@
 	.directive("scroll", function($window) {
 		return function(scope, element, attr){
 			angular.element($window).bind("scroll", function(){
-				if(this.pageYOffset >= 173){
+				if(this.pageYOffset >= $('#selection').height()){
 					scope.boolChangeClass = true;
-					// console.log('scrolled below header');
 				}else{
 					scope.boolChangeClass = false;
-					// console.log('header is visible');
 				}
 				scope.$apply();
 			});
