@@ -27,6 +27,12 @@
 		};
 	}])
 
+	.filter('iif', function () {
+   	return function(input, trueValue, falseValue) {
+    	return input ? trueValue : falseValue;
+  	};
+	})
+
 	.filter('readableTime', ['$filter', function ($filter) {
 
 		function pad2(number){
@@ -210,9 +216,9 @@
 			var tempArr = [];
 			var i, j, k, l;
 			var returnArr = [];
-			//todo surely this can be achieved more efficiently
 
-
+			$scope.leastPlaysOnGroup = undefined;
+			$scope.mostPlaysOnGroup = undefined;
 
 			for(i = 0; i < data.length; i++){
 				groups.push(data[i].groupName);
@@ -311,6 +317,7 @@
 				for(j = 0; j < users.length; j++){
 
 					if($scope.userRoleFilter.indexOf(data[i].userRole) > -1 && data[i].playerName === users[j].name){
+
 						for(k = 0; k < users[j].data.length; k++){
 
 							if(data[i].gameTitle === users[j].data[k].game ){
@@ -349,6 +356,7 @@
 									if(users[j].data[k].exerciseDays.indexOf(users[j].data[k].plays[l].startDate) == -1){
 										users[j].data[k].exerciseDays.push(users[j].data[k].plays[l].startDate);
 									}
+
 								}
 
 								//lets find smallest and largest startDate to get active week
@@ -422,10 +430,13 @@
 						if(users[i].overall.exerciseDays.indexOf(users[i].data[j].plays[k].startDate) == -1){
 							users[i].overall.exerciseDays.push(users[i].data[j].plays[k].startDate);
 						}
-
 					}
 				}
 			}
+
+
+
+
 
 			//group overalls
 			for(i = 0; i < data.length; i++){
@@ -443,14 +454,22 @@
 			'Muista viesti', 'Muista näkemäsi esineet', 'Etsi kuvat', 'Muista kuulemasi sanat', 'Rakenna kuvio mallista'];
 
 			for(i = 0; i < uniqueGroups.length; i++){
-				groups.push({'name': uniqueGroups[i], 'members': [], 'data': [], 'sum': {
-					'allGamePlays': 0,
-					'unfinishedPlays':0,
-					'lvl1Plays': 0,
-					'lvl2Plays': 0,
-					'lvl3Plays': 0,
-					'duration': 0
-				}});
+				groups.push({'name': uniqueGroups[i],
+					'leastPlays': undefined,
+					'leastTimePlayed': undefined,
+					'mostPlays': undefined,
+					'mostTimePlayed': undefined,
+					'members': [],
+					'data': [],
+					'sum': {
+						'allGamePlays': 0,
+						'unfinishedPlays':0,
+						'lvl1Plays': 0,
+						'lvl2Plays': 0,
+						'lvl3Plays': 0,
+						'duration': 0,
+					}
+				});
 
 				for(j = 0; j < games.length; j++){
 					groups[i].data[j] = {'game': games[j], 'gameData': [],
@@ -483,7 +502,6 @@
 							groups[j].members.push(data[i].playerName);
 						}
 
-
 					}
 				}
 			}
@@ -515,9 +533,36 @@
 				}
 			}
 
+
+			//least and most plays/time per group
+			for(i = 0; i < users.length; i++){
+				for(j = 0; j < groups.length; j++){
+
+					if(users[i].group === groups[j].name){
+
+						if(typeof groups[j].mostPlays === "undefined" || groups[j].mostPlays < users[i].overall.totalPlays){
+							groups[j].mostPlays = users[i].overall.totalPlays;
+						}
+
+						if(typeof groups[j].leastPlays === "undefined" || groups[j].leastPlays > users[i].overall.totalPlays){
+							groups[j].leastPlays = users[i].overall.totalPlays;
+						}
+
+						if(typeof groups[j].mostTimePlayed === "undefined" || groups[j].mostTimePlayed < users[i].overall.duration){
+							groups[j].mostTimePlayed = users[i].overall.duration;
+						}
+
+						if(typeof groups[j].leastTimePlayed === "undefined" || groups[j].leastTimePlayed > users[i].overall.duration){
+							groups[j].leastTimePlayed = users[i].overall.duration;
+						}
+
+					}
+				}
+			}
+
+
 			for(i = 0; i < data.length; i++){
 				if($scope.userRoleFilter.indexOf(data[i].userRole) > -1 ){
-
 					for(j = 0; j < groups.length; j++){
 
 						if(data[i].groupName === groups[j].name){
@@ -549,14 +594,13 @@
 
 								groups[j].data[k].overalls.finishedAverage = (groups[j].data[k].gameData.length - groups[j].data[k].overalls.unfinishedPlays) / groups[j].members.length;
 
-							}
 
+							}
 						}
 					}
 				}
 			}
 
-			//console.log(data);
 			console.log('groups', groups);
 			console.log('users', users);
 			$scope.groups = groups;

@@ -173,6 +173,16 @@
 				</tr>
 
 			</table>
+
+			<div class="alert alert-danger" role="alert">
+				Vähiten harjoitteita tehty: {{group.leastPlays | iif: group.leastPlays : 0}}<br/>
+				Vähiten aikaa käytetty: {{group.leastTimePlayed | readableTime}}
+			</div>
+			<div class="alert alert-success" role="alert">
+				Eniten harjoitteita tehty: {{group.mostPlays | iif: group.leastPlays : 0}}<br/>
+				Eniten aikaa käytetty: {{group.mostTimePlayed | readableTime}}
+			</div>
+
 			<hr/>
 
 		</div>
