@@ -89,17 +89,18 @@
 
 	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', '$modal', function($scope, $http, $anchorScroll, $q, $modal){
 
-		$scope.setFilter = function(arr){
+		$scope.setFilters = function(arr, groupComparisonBoolean){
 			$scope.userRoleFilter = arr;
-			console.log('filtering by userRoles', arr);
+			$scope.groupComparison = groupComparisonBoolean;
+			console.log('filtering by userRoles', arr, 'group comparison', groupComparisonBoolean);
 		};
 
 		$scope.orderByField = 'game';
+		$scope.orderGroupsByField = 'game';
 		$scope.reverseSort = false;
 
 		$scope.smallestDate = undefined;
 		$scope.largestDate = undefined;
-		$scope.durations = [];
 
 		$scope.forceShowUnplayedGames = false;
 
@@ -198,15 +199,30 @@
 			$('#data').css('display', 'block');
 
 			$scope.users = [];
+			$scope.groups = [];
 			$scope.smallestDate = undefined;
 			$scope.largestDate = undefined;
 			var users = [];
 			var players = [];
+			var groups = [];
+			var uniqueGroups = [];
 			var uniquePlayers = [];
 			var tempArr = [];
 			var i, j, k, l;
-
+			var returnArr = [];
 			//todo surely this can be achieved more efficiently
+
+
+
+			for(i = 0; i < data.length; i++){
+				groups.push(data[i].groupName);
+			}
+
+			$.each(groups, function(i, el){
+				if($.inArray(el, uniqueGroups) === -1){
+					uniqueGroups.push(el);
+				}
+			});
 
 			for(i = 0; i < data.length; i++){
 				players.push(data[i].playerName);
@@ -410,6 +426,140 @@
 					}
 				}
 			}
+
+			//group overalls
+			for(i = 0; i < data.length; i++){
+				groups.push(data[i].groupName);
+			}
+
+			$.each(groups, function(i, el){
+				if($.inArray(el, uniqueGroups) === -1){
+					uniqueGroups.push(el);
+				}
+			});
+
+			groups = [];
+			var games = ['Muista näkemäsi numerosarja', 'Jätkänshakki', 'Sudoku', 'Tunnista sanat', 'Päättele salasana',
+			'Muista viesti', 'Muista näkemäsi esineet', 'Etsi kuvat', 'Muista kuulemasi sanat', 'Rakenna kuvio mallista'];
+
+			for(i = 0; i < uniqueGroups.length; i++){
+				groups.push({'name': uniqueGroups[i], 'members': [], 'data': [], 'sum': {
+					'allGamePlays': 0,
+					'unfinishedPlays':0,
+					'lvl1Plays': 0,
+					'lvl2Plays': 0,
+					'lvl3Plays': 0,
+					'duration': 0
+				}});
+
+				for(j = 0; j < games.length; j++){
+					groups[i].data[j] = {'game': games[j], 'gameData': [],
+					'overalls': {
+						'lvl1Plays': 0,
+						'lvl2Plays': 0,
+						'lvl3Plays': 0,
+						'duration': 0,
+						'unfinishedPlays': 0,
+						'finishedPercentage': 0,
+						'finishedAverage':0
+					}};
+				}
+			}
+
+			for(i = 0; i < data.length; i++){
+				for(j = 0; j < groups.length; j++){
+					for(k = 0; k < groups[j].data.length; k++){
+
+						if(groups[j].name === data[i].groupName && groups[j].data[k].game === data[i].gameTitle &&
+							$scope.userRoleFilter.indexOf(data[i].userRole) > -1){
+
+							groups[j].data[k].gameData.push(data[i]);
+						}
+
+
+						if(groups[j].name === data[i].groupName && $scope.userRoleFilter.indexOf(data[i].userRole) > -1  &&
+							groups[j].members.indexOf(data[i].playerName) === -1){
+
+							groups[j].members.push(data[i].playerName);
+						}
+
+
+					}
+				}
+			}
+
+			for(i = 0; i < groups.length; i++){
+				for(j = 0; j < Object.keys(groups[i].data).length; j++){
+					for(k = 0; k < groups[i].data[j].gameData.length; k++){
+
+						if(groups[i].data[j].gameData[k].difficulty === 'Taso I'){
+							groups[i].data[j].overalls.lvl1Plays++;
+						}else if(groups[i].data[j].gameData[k].difficulty === 'Taso II'){
+							groups[i].data[j].overalls.lvl2Plays++;
+						}else{
+							//joker or lvl3
+							groups[i].data[j].overalls.lvl3Plays++;
+						}
+
+						//duration might be null? wonder why
+						if(groups[i].data[j].gameData[k].duration !== null){
+							groups[i].data[j].overalls.duration += parseInt(groups[i].data[j].gameData[k].duration,0);
+
+						}
+
+						if(groups[i].data[j].gameData[k].endDate.length === 0){
+							groups[i].data[j].overalls.unfinishedPlays++;
+
+						}
+					}
+				}
+			}
+
+			for(i = 0; i < data.length; i++){
+				if($scope.userRoleFilter.indexOf(data[i].userRole) > -1 ){
+
+					for(j = 0; j < groups.length; j++){
+
+						if(data[i].groupName === groups[j].name){
+
+							groups[j].sum.allGamePlays++;
+
+							if(data[i].endDate.length === 0){
+								groups[j].sum.unfinishedPlays++;
+							}
+
+							if(data[i].difficulty === "Taso I"){
+								groups[j].sum.lvl1Plays++;
+							}else if(data[i].difficulty === "Taso II"){
+								groups[j].sum.lvl2Plays++;
+							}else{
+								groups[j].sum.lvl3Plays++;
+							}
+
+							if(data[i].duration !== null){
+								groups[j].sum.duration += parseInt(data[i].duration,0);
+							}
+
+							for(k = 0; k < groups[j].data.length; k++){
+
+								groups[j].data[k].overalls.finishedPercentage = (groups[j].data[k].gameData.length - groups[j].data[k].overalls.unfinishedPlays) / groups[j].data[k].gameData.length;
+								if(isNaN(groups[j].data[k].overalls.finishedPercentage)){
+									groups[j].data[k].overalls.finishedPercentage = 0;
+								}
+
+								groups[j].data[k].overalls.finishedAverage = (groups[j].data[k].gameData.length - groups[j].data[k].overalls.unfinishedPlays) / groups[j].members.length;
+
+							}
+
+						}
+					}
+				}
+			}
+
+			//console.log(data);
+			console.log('groups', groups);
+			console.log('users', users);
+			$scope.groups = groups;
 			$scope.users = users;
 			$scope.loadingShowing = false;
 			//console.log($scope.users);

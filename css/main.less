@@ -79,15 +79,16 @@ body{
 			text-align: center;
 			vertical-align: middle !important;
 		}
-	}
+		tr.yellow-row{
+			td{
+				background-color: yellow !important;
+				font-weight: bold;
+			}
 
-	.yellow-row{
-		background-color: yellow;
-		font-weight: bold;
-	}
-
-	.align-left{
-		text-align: left;
+		}
+		td.align-left{
+			text-align: left;
+		}
 	}
 }
 
@@ -102,10 +103,12 @@ body{
 
 #data{
 	display: none;
-	.week{
+	.dataset{
 		padding: 0 30px;
 	}
+
 }
+
 
 #overlay{
 	position: fixed;
