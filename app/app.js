@@ -65,7 +65,27 @@
 
 			promise
 				.success(function(data, status, headers, config){
-					$scope.digForNames(data);
+
+					if(window.location.host){
+						$scope.digForNames(data);
+					}else{
+
+						//using from local index.html hack
+						var parsedData = [];
+						$(data).each(function(){
+
+							if( this.hasOwnProperty('innerHTML') && this.innerHTML.indexOf('.json') > -1 ){
+								//this numbers shouldn't be changin so hardcoding ok?
+								console.log($(this).html().substring(8,32));
+								parsedData.push($(this).html().substring(8,32));
+							}
+
+						});
+
+						$scope.digForNames(parsedData);
+
+					}
+
 				})
 				.error(function(){
 					console.log('fetching filenames failed');
@@ -73,12 +93,23 @@
 		};
 
 		$scope.digForNames = function(data){
-			var files = [];
 
-			$(data).find('a:contains(".json")').each(function(){
-				file = this.href.replace(window.location.host, "").replace("http:///","").replace("foramen-data/","");
-				files.push(file);
-			});
+			var files = [];
+			if(window.location.host){
+
+				$(data).find('a:contains(".json")').each(function(){
+					file = this.href.replace(window.location.host, "").replace("http:///","").replace("foramen-data/","");
+					files.push(file);
+				});
+
+			}else{
+
+				//using from local index.html hack
+				data.forEach(function(file){
+					files.push(file);
+				});
+
+			}
 			$scope.files = files;
 		};
 
