@@ -124,20 +124,20 @@
 	}])
 
 
-	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', '$modal', function($scope, $http, $anchorScroll, $q, $modal){
+	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', '$modal', '$rootScope',
+		function($scope, $http, $anchorScroll, $q, $modal, $rootScope){
 
 		$scope.setFilters = function(arr, groupComparisonBoolean){
 			$scope.userRoleFilter = arr;
 			$scope.groupComparison = groupComparisonBoolean;
-			console.log('filtering by userRoles', arr, 'group comparison', groupComparisonBoolean);
 		};
 
 		$scope.orderByField = 'game';
 		$scope.orderGroupsByField = 'game';
 		$scope.reverseSort = false;
 
-		$scope.smallestDate = undefined;
-		$scope.largestDate = undefined;
+		$rootScope.smallestDate = undefined;
+		$rootScope.largestDate = undefined;
 
 		$scope.forceShowUnplayedGames = false;
 
@@ -173,7 +173,7 @@
 		});
 
 		$scope.getData = function(filename, multiple){
-			console.log('getdata', filename, multiple);
+			//console.log('getdata', filename, multiple);
 			var datas = [];
 			if(!multiple){
 				var dataPromise = $http.get('json/'+filename);
@@ -233,12 +233,11 @@
 		};
 
 		$scope.parseData = function(data){
+			$rootScope.wholeData = data;
 			$('#data').css('display', 'block');
 
 			$scope.users = [];
 			$scope.groups = [];
-			$scope.smallestDate = undefined;
-			$scope.largestDate = undefined;
 			var users = [];
 			var players = [];
 			var groups = [];
@@ -396,12 +395,12 @@
 								d.setDate(parseInt(data[i].startDate.substring(0,2),0));
 								d.setMonth(parseInt(data[i].startDate.substring(3,5),0)-1);
 
-								if($scope.smallestDate === undefined || d < $scope.smallestDate ){
-									$scope.smallestDate = d;
+								if($rootScope.smallestDate === undefined || d < $rootScope.smallestDate ){
+									$rootScope.smallestDate = d;
 								}
 
-								if($scope.largestDate === undefined || d > $scope.largestDate){
-									$scope.largestDate = d;
+								if($rootScope.largestDate === undefined || d > $rootScope.largestDate){
+									$rootScope.largestDate = d;
 								}
 							}
 						}

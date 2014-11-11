@@ -1,7 +1,7 @@
 <div ng-controller="ChartsController as chartsCtrl" ng-init="modalVisible=true;">
-  <button class="btn btn-default pull-right" ng-click="close()">Sulje</button>
+  <button class="btn btn-default" ng-click="close()">Sulje</button>
 
-  <div ng-if="modalVisible" id="chart" ac-chart="'pie'"
+  <div ng-if="modalVisible && showGameComparison" id="chart" ac-chart="'pie'"
     data-ac-data="gameComparisonData"
     data-ac-config="gameComparisonConfig">
   </div>
@@ -10,8 +10,22 @@
     <button class="btn btn-default btn-lg" ng-click="close()">Sulje</button>
   </div>
 
+
+  <div ng-if="modalVisible && showPlayBars" id="bar-chart" ac-chart="'bar'"
+    data-ac-data="playBarsData"
+    data-ac-config="playBarsConfig">
+  </div>
+
+
   <div class="modal-footer">
-    Menu between graphics here maybe?
+    <button class="btn btn-default" ng-class="{'btn-primary':showGameComparison}"
+    ng-click="showPlayBars=false; showGameComparison=true;">
+      Näytä pelijakauma
+      </button>
+    <button class="btn btn-default" ng-class="{'btn-primary':showPlayBars}"
+    ng-click="showGameComparison=false; showPlayBars=true;">
+      Näytä päivittäisen harjoittelun jakautuminen
+    </button>
   </div>
 
 
