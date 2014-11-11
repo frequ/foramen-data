@@ -40,7 +40,7 @@
 
     var plays = [];
     for(i = 0; i < wholeData.length; i++){
-      
+
       for( j = 0; j < dayLabels.length; j++){
 
         if(wholeData[i].startDate === dayLabels[j]){
@@ -75,7 +75,7 @@
 
     $scope.playBarsConfig = {
       title: 'Harjoittelijan '+ user.name +' harjoittelut ajanjaksolla '+ $filter('date')($rootScope.smallestDate, 'd.M') +
-        ' - '+$filter('date')($rootScope.largestDate, 'd.M.yyyy'),
+        ' - '+$filter('date')($rootScope.largestDate, 'd.M.yyyy') + ' (yht. '+ dayLabels.length + ' harjoittelupäivää)',
       tooltips: true,
       labels: true,
       mouseover: function() {},
