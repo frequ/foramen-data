@@ -136,9 +136,6 @@
 		$scope.orderGroupsByField = 'game';
 		$scope.reverseSort = false;
 
-		$rootScope.smallestDate = undefined;
-		$rootScope.largestDate = undefined;
-
 		$scope.forceShowUnplayedGames = false;
 
 		$scope.openModal = function (user, size) {
@@ -196,8 +193,15 @@
 
 				$q.all(jsons).then(function(result){
 					var tmp = [];
+					var num = 1;
 					angular.forEach(result, function(response){
+
+						for(i = 0; i < response.data.length; i++){
+							response.data[i].weekNum = num;
+						}
+
 						tmp.push(response.data);
+						num++;
 					});
 					return tmp;
 				}).then(function(tmpResult){
@@ -235,7 +239,7 @@
 		$scope.parseData = function(data){
 			$rootScope.wholeData = data;
 			$('#data').css('display', 'block');
-
+			// console.log(data);
 			$scope.users = [];
 			$scope.groups = [];
 			var users = [];
@@ -249,6 +253,8 @@
 
 			$scope.leastPlaysOnGroup = undefined;
 			$scope.mostPlaysOnGroup = undefined;
+			$rootScope.smallestDate = undefined;
+			$rootScope.largestDate = undefined;
 
 			for(i = 0; i < data.length; i++){
 				groups.push(data[i].groupName);

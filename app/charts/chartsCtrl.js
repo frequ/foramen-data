@@ -5,11 +5,14 @@
   .controller('ChartsController', function($scope, $rootScope, $filter){
 
     $scope.showGameComparison = false;
-    $scope.showPlayBars = true;
+    $scope.showPlayBars = false;
+    $scope.showWeekPlayBars = true;
 
     var wholeData = $rootScope.wholeData;
     var user = $rootScope.modalUser;
     $scope.chartError = false;
+
+    $scope.multiple = false;
 
     var gameLabels = [], data = [];
     var y, i, j;
@@ -31,25 +34,69 @@
         });
     }
 
-    var dayLabels = [], weekData = [];
+    var dayLabels = [], dayData = [];
+    var weekLabels = [], weekData = [];
 
     //weekly/daily data bars
     for(i = 0; i < user.overall.exerciseDays.length; i++){
       dayLabels.push(user.overall.exerciseDays[i]);
+
+
     }
 
-    var plays = [];
+
+
+    var dayPlays = [];
     for(i = 0; i < wholeData.length; i++){
 
       for( j = 0; j < dayLabels.length; j++){
 
-        if(wholeData[i].startDate === dayLabels[j]){
-          if(!plays[dayLabels[j]]){
-            plays[dayLabels[j]] = 0;
+        //user comaprison missing
+        if(wholeData[i].startDate === dayLabels[j] && wholeData[i].playerName === user.name){
+
+          //check if multiple files/weeks
+          if(!$scope.multiple && wholeData[i].weekNum){
+            $scope.multiple = true;
           }
-          plays[dayLabels[j]]++;
+
+          if(!dayPlays[dayLabels[j]]){
+            dayPlays[dayLabels[j]] = 0;
+          }
+          dayPlays[dayLabels[j]]++;
         }
       }
+    }
+
+    var weekPlays = [];
+    if($scope.multiple){
+      for(i = 0; i < wholeData.length; i++){
+
+        if(weekLabels.indexOf('Viikko '+wholeData[i].weekNum) == -1){
+          weekLabels.push('Viikko '+wholeData[i].weekNum);
+        }
+
+      }
+      for(i = 0; i < wholeData.length; i++){
+
+        if(user.name === wholeData[i].playerName){
+          if(!weekPlays['Viikko '+wholeData[i].weekNum]){
+            weekPlays['Viikko '+wholeData[i].weekNum] = 0;
+          }
+          weekPlays['Viikko '+wholeData[i].weekNum]++;
+        }
+      }
+      for(i = 0; i < weekLabels.length; i++){
+        if(!weekPlays[weekLabels[i]]){
+          weekPlays[weekLabels[i]] = 0;
+        }
+      }
+
+
+      console.log(weekLabels);
+      console.log(weekPlays);
+    }else{
+      $scope.showPlayBars = true;
+      $scope.showWeekPlayBars = false;
     }
 
     //sorting date strings
@@ -65,16 +112,15 @@
     });
 
     for(j = 0; j < dayLabels.length; j++){
-      weekData.push({
+      dayData.push({
         'x': dayLabels[j],
-        'y': [plays[dayLabels[j]]],
-        'tooltip': dayLabels[j] + ' <br/> Yhteensä harjoiteltu ' + plays[dayLabels[j]] + ' kertaa'
+        'y': [dayPlays[dayLabels[j]]],
+        'tooltip': dayLabels[j] + ' <br/> Yhteensä harjoiteltu ' + dayPlays[dayLabels[j]] + ' kertaa'
       });
-
     }
 
     $scope.playBarsConfig = {
-      title: 'Harjoittelijan '+ user.name +' harjoittelut ajanjaksolla '+ $filter('date')($rootScope.smallestDate, 'd.M') +
+      title: 'Harjoittelijan '+ user.name +' harjoittelukerrat ajanjaksolla '+ $filter('date')($rootScope.smallestDate, 'd.M') +
         ' - '+$filter('date')($rootScope.largestDate, 'd.M.yyyy') + ' (yht. '+ dayLabels.length + ' harjoittelupäivää)',
       tooltips: true,
       labels: true,
@@ -91,8 +137,39 @@
 
     $scope.playBarsData = {
       series: dayLabels,
+      data: dayData
+    };
+
+
+    for(i = 0; i < weekLabels.length; i++){
+      weekData.push({
+        'x': weekLabels[i],
+        'y': [weekPlays[weekLabels[i]]],
+        'tooltip': weekLabels[i] + ' <br/> Yhteensä harjoiteltu '+weekPlays[weekLabels[i]]+ ' kertaa'
+      });
+    }
+
+    $scope.weekPlayBarsConfig = {
+      title: 'Harjoittelijan '+ user.name +' harjoittelukerrat ajanjaksolla '+ $filter('date')($rootScope.smallestDate, 'd.M') +
+        ' - '+$filter('date')($rootScope.largestDate, 'd.M.yyyy') + ' (yht. '+ dayLabels.length + ' harjoittelupäivää)',
+      tooltips: true,
+      labels: true,
+      mouseover: function() {},
+      mouseout: function() {},
+      click: function() {},
+      legend: {
+        display: false,
+        position: 'left'
+      },
+      isAnimate: true,
+      colors: colors
+    };
+
+    $scope.weekPlayBarsData = {
+      series: weekLabels,
       data: weekData
     };
+
 
     $scope.gameComparisonConfig  = {
       title: 'Harjoittelijan '+ user.name + ' harjoitteluajan jakautuminen:',

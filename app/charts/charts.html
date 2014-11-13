@@ -1,30 +1,40 @@
 <div ng-controller="ChartsController as chartsCtrl" ng-init="modalVisible=true;">
   <button class="btn btn-default" ng-click="close()">Sulje</button>
 
-  <div ng-if="modalVisible && showGameComparison" id="chart" ac-chart="'pie'"
-    data-ac-data="gameComparisonData"
-    data-ac-config="gameComparisonConfig">
-  </div>
   <div ng-show="chartError" class="chartError">
     <h1>Käyttäjältä ei saatavilla dataa.</h1>
     <button class="btn btn-default btn-lg" ng-click="close()">Sulje</button>
   </div>
 
+  <div ng-if="modalVisible && showGameComparison" id="chart" ac-chart="'pie'"
+    data-ac-data="gameComparisonData"
+    data-ac-config="gameComparisonConfig">
+  </div>
 
   <div ng-if="modalVisible && showPlayBars" id="bar-chart" ac-chart="'bar'"
     data-ac-data="playBarsData"
     data-ac-config="playBarsConfig">
   </div>
 
+  <div ng-if="modalVisible && showWeekPlayBars" id="bar-chart" ac-chart="'bar'"
+    data-ac-data="weekPlayBarsData"
+    data-ac-config="weekPlayBarsConfig">
+  </div>
 
-  <div class="modal-footer">
+
+  <div ng-hide="chartError" class="modal-footer">
     <button class="btn btn-default" ng-class="{'btn-primary':showGameComparison}"
-    ng-click="showPlayBars=false; showGameComparison=true;">
+    ng-click="showPlayBars=false; showGameComparison=true; showWeekPlayBars=false;">
       Näytä pelijakauma
       </button>
     <button class="btn btn-default" ng-class="{'btn-primary':showPlayBars}"
-    ng-click="showGameComparison=false; showPlayBars=true;">
-      Näytä päivittäisen harjoittelun jakautuminen
+    ng-click="showGameComparison=false; showPlayBars=true; showWeekPlayBars=false;">
+      Näytä harjoittelun jakautuminen päivittäin
+    </button>
+    <button ng-show="multiple" class="btn btn-default"
+    ng-class="{'btn-primary':showWeekPlayBars}"
+    ng-click="showGameComparison=false; showPlayBars=false; showWeekPlayBars=true;">
+      Näytä harjoittelun jakautuminen viikoittain
     </button>
   </div>
 
