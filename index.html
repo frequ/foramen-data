@@ -36,7 +36,9 @@
 			</nav>
 		</div>
 
-		<div ng-show="!groupComparison" class="dataset clearfix" ng-repeat="user in users track by $index">
+		<div ng-show="!groupComparison && user.overall.totalPlays > 0" class="dataset clearfix"
+			ng-repeat="user in users track by $index">
+
 			<h2>{{user.name}} <small>{{user.group}}</small>
 				<button class="btn btn-primary" ng-click="openModal(user, 'lg')">Grafiikka</button>
 			</h2>
@@ -117,7 +119,8 @@
 
 		</div>
 
-		<div class="dataset clearfix" ng-show="groupComparison" ng-repeat="group in groups track by $index">
+		<div class="dataset clearfix" ng-show="groupComparison && group.members.length > 0"
+			ng-repeat="group in groups track by $index">
 			<h2>{{group.name}} <small>Harjoittelijoita löytyi {{group.members.length}} kpl</small></h2>
 
 			<table class="table table-striped table-bordered">
@@ -164,7 +167,7 @@
 				<tr class="yellow-row">
 					<td class="align-left">Yhteensä</td>
 					<td>{{group.sum.allGamePlays}}</td>
-					<td>{{group.sum.unfinishedPlays}}</td>
+					<td>{{group.sum.allGamePlays - group.sum.unfinishedPlays}}</td>
 					<td>{{ (group.sum.allGamePlays - group.sum.unfinishedPlays) / group.sum.allGamePlays  | percentage: 1 }}</td>
 					<td>{{ (group.sum.allGamePlays - group.sum.unfinishedPlays) / group.members.length | number: 1}}</td>
 					<td>{{group.sum.lvl1Plays}}</td>
