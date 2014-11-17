@@ -37,7 +37,7 @@
 		</div>
 
 		<div ng-show="!groupComparison && user.overall.totalPlays > 0" class="dataset clearfix"
-			ng-repeat="user in users track by $index">
+			ng-repeat="user in users | orderBy:'name' track by $index">
 
 			<h2>{{user.name}} <small>{{user.group}}</small>
 				<button class="btn btn-primary" ng-click="openModal(user, 'lg')">Grafiikka</button>
@@ -120,7 +120,7 @@
 		</div>
 
 		<div class="dataset clearfix" ng-show="groupComparison && group.members.length > 0"
-			ng-repeat="group in groups track by $index">
+			ng-repeat="group in groups | orderBy:'name' track by $index">
 			<h2>{{group.name}} <small>Harjoittelijoita löytyi {{group.members.length}} kpl</small></h2>
 
 			<table class="table table-striped table-bordered">
