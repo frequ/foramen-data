@@ -353,7 +353,7 @@
 				for(j = 0; j < users.length; j++){
 
 					if($scope.userRoleFilter.indexOf(data[i].userRole) > -1 && data[i].playerName === users[j].name){
-
+						//console.log(data[i].playerName, data[i]);
 						for(k = 0; k < users[j].data.length; k++){
 
 							if(data[i].gameTitle === users[j].data[k].game ){
@@ -628,8 +628,9 @@
 									groups[j].data[k].overalls.finishedPercentage = 0;
 								}
 
-								groups[j].data[k].overalls.finishedAverage = (groups[j].data[k].gameData.length - groups[j].data[k].overalls.unfinishedPlays) / groups[j].members.length;
 
+								groups[j].data[k].overalls.finishedAverage = (groups[j].data[k].gameData.length - groups[j].data[k].overalls.unfinishedPlays) / groups[j].members.length;
+								//console.log(groups[j].data[k].overalls.finishedAverage);
 
 							}
 						}
@@ -637,8 +638,8 @@
 				}
 			}
 
-			console.log('groups', groups);
-			console.log('users', users);
+			// console.log('groups', groups);
+			// console.log('users', users);
 			$scope.groups = groups;
 			$scope.users = users;
 			$scope.loadingShowing = false;
