@@ -2,7 +2,7 @@
 	"use strict";
 	/*global $:false, jQuery:false */
 
-	var app = angular.module('foramendata', ['ui.bootstrap','angularCharts','chartsCtrl'])
+	var app = angular.module('foramendata', ['ui.bootstrap','angularCharts','chartsCtrl','angularMoment'])
 
 	.directive("scroll", function($window) {
 		return function(scope, element, attr){
@@ -349,6 +349,7 @@
 				});
 			}
 
+			var parsedStartDate;
 			for(i = 0; i < data.length; i++){
 				for(j = 0; j < users.length; j++){
 
@@ -389,8 +390,15 @@
 									}
 
 									//exercise days
-									if(users[j].data[k].exerciseDays.indexOf(users[j].data[k].plays[l].startDate) == -1){
-										users[j].data[k].exerciseDays.push(users[j].data[k].plays[l].startDate);
+									parsedStartDate = "";
+									if(users[j].data[k].plays[l].startDate.length > 10){
+										parsedStartDate = moment(users[j].data[k].plays[l].startDate).format("DD.MM.YYYY").toString();
+									}else{
+										parsedStartDate = users[j].data[k].plays[l].startDate;
+									}
+
+									if(users[j].data[k].exerciseDays.indexOf(parsedStartDate) == -1){
+										users[j].data[k].exerciseDays.push(parsedStartDate);
 									}
 
 								}
@@ -398,8 +406,8 @@
 								//lets find smallest and largest startDate to get active week
 								var d = new Date();
 								//days 1-31 & months 0-11
-								d.setDate(parseInt(data[i].startDate.substring(0,2),0));
-								d.setMonth(parseInt(data[i].startDate.substring(3,5),0)-1);
+								d.setDate(parseInt(parsedStartDate.substring(0,2),0));
+								d.setMonth(parseInt(parsedStartDate.substring(3,5),0)-1);
 
 								if($rootScope.smallestDate === undefined || d < $rootScope.smallestDate ){
 									$rootScope.smallestDate = d;
