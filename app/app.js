@@ -76,7 +76,7 @@
 
 							if( this.hasOwnProperty('innerHTML') && this.innerHTML.indexOf('.json') > -1 ){
 								//this numbers shouldn't be changin so hardcoding ok?
-								console.log($(this).html().substring(8,32));
+								//console.log($(this).html().substring(8,32));
 								parsedData.push($(this).html().substring(8,32));
 							}
 
@@ -471,14 +471,20 @@
 
 					//amount of exercise days (all exercises)
 					for(k = 0; k < users[i].data[j].plays.length; k++){
-						if(users[i].overall.exerciseDays.indexOf(users[i].data[j].plays[k].startDate) == -1){
-							users[i].overall.exerciseDays.push(users[i].data[j].plays[k].startDate);
+
+						parsedStartDate = "";
+						if(users[i].data[j].plays[k].startDate.length > 10){
+							parsedStartDate = moment(users[i].data[j].plays[k].startDate).format("DD.MM.YYYY").toString();
+						}else{
+							parsedStartDate = users[i].data[j].plays[k].startDate;
+						}
+
+						if(users[i].overall.exerciseDays.indexOf(parsedStartDate) == -1){
+							users[i].overall.exerciseDays.push(parsedStartDate);
 						}
 					}
 				}
 			}
-
-
 
 
 
@@ -651,7 +657,6 @@
 			$scope.groups = groups;
 			$scope.users = users;
 			$scope.loadingShowing = false;
-			//console.log($scope.users);
 		};
 
 	}])

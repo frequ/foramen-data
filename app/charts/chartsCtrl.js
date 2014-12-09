@@ -44,15 +44,20 @@
 
     }
 
-
-
     var dayPlays = [];
+    var parsedStartDate;
     for(i = 0; i < wholeData.length; i++){
 
       for( j = 0; j < dayLabels.length; j++){
 
-        //user comaprison missing
-        if(wholeData[i].startDate === dayLabels[j] && wholeData[i].playerName === user.name){
+        parsedStartDate = "";
+        if(wholeData[i].startDate.length > 10){
+          parsedStartDate = moment(wholeData[i].startDate).format("DD.MM.YYYY");
+        }else{
+          parsedStartDate = wholeData[i].startDate;
+        }
+
+        if(parsedStartDate === dayLabels[j] && wholeData[i].playerName === user.name){
 
           //check if multiple files/weeks
           if(!$scope.multiple && wholeData[i].weekNum){
@@ -91,9 +96,6 @@
         }
       }
 
-
-      console.log(weekLabels);
-      console.log(weekPlays);
     }else{
       $scope.showPlayBars = true;
       $scope.showWeekPlayBars = false;
