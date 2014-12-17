@@ -226,7 +226,7 @@
 			$scope.user = user;
 
 			var modalInstance = $modal.open({
-				templateUrl: 'app/charts/charts.html',
+				templateUrl: 'charts.html',
 				controller: 'ModalInstanceController',
 				size: size,
 				backdrop: 'static',
