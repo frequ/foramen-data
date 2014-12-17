@@ -16,7 +16,23 @@
 
 <body ng-controller="DataController as dataCtrl">
 
-  <div id="selection" ng-controller="FilesController as filesCtrl">
+	<div id="selection" ng-controller="FileAPIController as fileAPICtrl">
+		<input type="file" id="files" name="files[]" multiple></input>
+		<label>Tiedostot:</label><br/>
+		<div id="fileList">
+			Ei valittuja tiedostoja
+		</div>
+
+		<label>Rajaa dataa:</label><br/>
+		<div class="btn-group">
+			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Kuntoutuja',false]" uncheckable>Vain kuntotoutujat</label>
+			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Läheinen',false]" uncheckable>Vain läheiset</label>
+			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Kuntoutuja',true]" uncheckable>Hae ryhmätieto (vain kuntoutujat)</label>
+		</div>
+
+	</div>
+
+  <!-- <div id="selection" ng-controller="FilesController as filesCtrl">
 		<label>Valitse tiedosto(t) :</label>
     <select name="selectFileFromDir" class="form-control" ng-model="fileName" ng-options="file as file for file in files" multiple >
 		</select>
@@ -24,7 +40,7 @@
 		<button class="btn btn-default" ng-click="passFileName(fileName); setFilters(['Kuntoutuja'], false);">Hae data: Kuntoutuja</button>
 		<button class="btn btn-default" ng-click="passFileName(fileName); setFilters(['Kuntoutuja', 'Läheinen'], false);">Hae data: Kuntoutuja sekä Läheiset</button>
   	<button class="btn btn-default" ng-click="passFileName(fileName); setFilters(['Kuntoutuja'], true);">Hae data: Ryhmävertailu</button>
-	</div>
+	</div> -->
 
 	<div id="data" ng-cloak scroll ng-class="{min:boolChangeClass}">
 
@@ -34,9 +50,11 @@
 				<button class="btn btn-default" ng-click="forceShowUnplayedGames = !forceShowUnplayedGames">Näytä/piilota harjoitukset joita ei ole tehty</button>
 				<button class="btn btn-default" ng-click="scrollTop()">Takaisin ylös</button>
 			</nav>
+
 		</div>
 
-		<div ng-show="!groupComparison && user.overall.totalPlays > 0" class="dataset clearfix"
+
+		<div class="dataset clearfix" ng-show="!groupComparison && user.overall.totalPlays > 0"
 			ng-repeat="user in users | orderBy:'name' track by $index">
 
 			<h2>{{user.name}} <small>{{user.group}}</small>
@@ -192,7 +210,7 @@
 		</div>
 
 	</div><!-- close #data -->
-
+	
 	<div id="overlay" ng-show="loadingShowing"></div>
 
 	<div class="loading" ng-show="loadingShowing">

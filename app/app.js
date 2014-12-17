@@ -55,82 +55,166 @@
 		};
 	}])
 
-	.controller('FilesController', ['$scope', '$http', function($scope, $http){
+	.controller('FileAPIController', ['$scope','$rootScope', function($scope, $rootScope){
 
-		var files = [];
-		var file;
+		$scope.handleFileSelect = function(event){
 
-		$scope.getFileNames = function(){
-			var promise = $http.get('./json');
+			$scope.$apply();
+			var files = event.target.files;
+			var output = []
+			var i, f, reader, obj;
 
-			promise
-				.success(function(data, status, headers, config){
+			var numOfFiles = files.length;
+			for(i = 0; i < numOfFiles; i++){
 
-					if(window.location.host){
-						$scope.digForNames(data);
-					}else{
+				f = files[i]
+				output.push('<li>', escape(f.name), '</li>');
 
-						//using from local index.html hack
-						var parsedData = [];
-						$(data).each(function(){
+				var tmp = [];
+				var num = 1;
+				if(numOfFiles === 1){
 
-							if( this.hasOwnProperty('innerHTML') && this.innerHTML.indexOf('.json') > -1 ){
-								//this numbers shouldn't be changin so hardcoding ok?
-								//console.log($(this).html().substring(8,32));
-								parsedData.push($(this).html().substring(8,32));
-							}
+					reader = new FileReader();
+					reader.onload = (function(theFile){
+						return function(e) {
+							obj = JSON.parse(e.target.result);
+							$scope.$root.$broadcast('gotData', obj);
+						};
+					})(f);
 
-						});
+				}else{
 
-						$scope.digForNames(parsedData);
+						reader = new FileReader();
+						reader.onload = (function(theFile){
+							return function(e) {
+								//obj = JSON.parse(e.target.result);
+								tmp.push(JSON.parse(e.target.result));
+								if(files.length <= num){
 
-					}
+									var data = [];
+									angular.forEach(tmp, function(values){
+										data = data.concat(values);
+									});
 
-				})
-				.error(function(){
-					console.log('fetching filenames failed');
-				});
-		};
-
-		$scope.digForNames = function(data){
-
-			var files = [];
-			if(window.location.host){
-
-				$(data).find('a:contains(".json")').each(function(){
-					file = this.href.replace(window.location.host, "").replace("http:///","").replace("foramen-data/","");
-					files.push(file);
-				});
-
-			}else{
-
-				//using from local index.html hack
-				data.forEach(function(file){
-					files.push(file);
-				});
-
+									$scope.$root.$broadcast('gotData', data);
+								}
+								num++;
+							};
+						})(f);
+				}
+				reader.readAsText(f);
 			}
-			$scope.files = files;
+
+			document.getElementById('fileList').innerHTML = '<ul>'+ output.join('') + '</ul>';
+
 		};
 
-		$scope.passFileName = function(name){
-			if(name.length > 1){
-					$scope.$root.$broadcast('gotFileName', name, true);
-			}else{
-				$scope.$root.$broadcast('gotFileName', name);
-			}
-		};
-		$scope.getFileNames();
+		document.getElementById('files').addEventListener('change', $scope.handleFileSelect, false);
+
 	}])
+
+	// .controller('FilesController', ['$scope', '$http', function($scope, $http){
+	//
+	// 	var files = [];
+	// 	var file;
+	//
+	// 	$scope.getFileNames = function(){
+	// 		var promise = $http.get('./json');
+	//
+	// 		promise
+	// 			.success(function(data, status, headers, config){
+	//
+	// 				if(window.location.host){
+	// 					$scope.digForNames(data);
+	// 				}else{
+	//
+	// 					//using from local index.html hack
+	// 					var parsedData = [];
+	// 					$(data).each(function(){
+	//
+	// 						if( this.hasOwnProperty('innerHTML') && this.innerHTML.indexOf('.json') > -1 ){
+	// 							//this numbers shouldn't be changin so hardcoding ok?
+	// 							//console.log($(this).html().substring(8,32));
+	// 							parsedData.push($(this).html().substring(8,32));
+	// 						}
+	//
+	// 					});
+	//
+	// 					$scope.digForNames(parsedData);
+	//
+	// 				}
+	//
+	// 			})
+	// 			.error(function(){
+	// 				console.log('fetching filenames failed');
+	// 			});
+	// 	};
+	//
+	// 	$scope.digForNames = function(data){
+	//
+	// 		var files = [];
+	// 		if(window.location.host){
+	//
+	// 			$(data).find('a:contains(".json")').each(function(){
+	// 				file = this.href.replace(window.location.host, "").replace("http:///","").replace("foramen-data/","");
+	// 				files.push(file);
+	// 			});
+	//
+	// 		}else{
+	//
+	// 			//using from local index.html hack
+	// 			data.forEach(function(file){
+	// 				files.push(file);
+	// 			});
+	//
+	// 		}
+	// 		$scope.files = files;
+	// 	};
+	//
+	// 	$scope.passFileName = function(name){
+	// 		if(name.length > 1){
+	// 				$scope.$root.$broadcast('gotFileName', name, true);
+	// 		}else{
+	// 			$scope.$root.$broadcast('gotFileName', name);
+	// 		}
+	// 	};
+	// 	$scope.getFileNames();
+	// }])
 
 
 	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', '$modal', '$rootScope',
 		function($scope, $http, $anchorScroll, $q, $modal, $rootScope){
 
-		$scope.setFilters = function(arr, groupComparisonBoolean){
-			$scope.userRoleFilter = arr;
-			$scope.groupComparison = groupComparisonBoolean;
+		//defaults
+		$scope.userRoleFilter = ['Kuntoutuja'];
+		$scope.groupComparison = false;
+		$scope.loadingShowing = false;
+
+		//filtering with one model&button:
+		//filter attribute & targetGroup boolean
+		$scope.filterModel = ['Kuntoutuja',false];
+
+		$scope.filterModelChanged = function(){
+
+			if(!this.filterModel){
+
+				if($scope.previousFilterModel){
+					this.filterModel = $scope.previousFilterModel;
+				}else{
+					this.filterModel = $scope.filterModel;
+				}
+
+			}else{
+				$scope.previousFilterModel = this.filterModel;
+				$scope.userRoleFilter = [this.filterModel[0]];
+				$scope.groupComparison = this.filterModel[1];
+			}
 		};
+
+		// $scope.setFilters = function(arr, groupComparisonBoolean){
+		// 	$scope.userRoleFilter = arr;
+		// 	$scope.groupComparison = groupComparisonBoolean;
+		// };
 
 		$scope.orderByField = 'game';
 		$scope.orderGroupsByField = 'game';
@@ -164,56 +248,56 @@
 				$anchorScroll(0);
 		};
 
-		$scope.$on('gotFileName', function(event, filename, multiple){
-			$scope.loadingShowing = true;
-			$scope.getData(filename, multiple);
-		});
+		// $scope.$on('gotFileName', function(event, filename, multiple){
+		// 	$scope.loadingShowing = true;
+		// 	$scope.getData(filename, multiple);
+		// });
 
-		$scope.getData = function(filename, multiple){
-			//console.log('getdata', filename, multiple);
-			var datas = [];
-			if(!multiple){
-				var dataPromise = $http.get('json/'+filename);
-
-				dataPromise
-					.success(function(data, status, headers, config){
-						$scope.parseData(data);
-					})
-					.error(function(data){
-						console.log('error fetching data');
-					});
-
-			}else{
-				var jsons = [];
-				var files = filename;
-
-				for(var i = 0; i < files.length; i++)(
-					jsons[i] = $http.get('json/'+files[i])
-				);
-
-				$q.all(jsons).then(function(result){
-					var tmp = [];
-					var num = 1;
-					angular.forEach(result, function(response){
-
-						for(i = 0; i < response.data.length; i++){
-							response.data[i].weekNum = num;
-						}
-
-						tmp.push(response.data);
-						num++;
-					});
-					return tmp;
-				}).then(function(tmpResult){
-					var data = [];
-					angular.forEach(tmpResult, function(values){
-						data = data.concat(values);
-					});
-					$scope.parseData(data);
-				});
-			}
-
-		};
+		// $scope.getData = function(filename, multiple){
+		// 	//console.log('getdata', filename, multiple);
+		// 	var datas = [];
+		// 	if(!multiple){
+		// 		var dataPromise = $http.get('json/'+filename);
+		//
+		// 		dataPromise
+		// 			.success(function(data, status, headers, config){
+		// 				$scope.parseData(data);
+		// 			})
+		// 			.error(function(data){
+		// 				console.log('error fetching data');
+		// 			});
+		//
+		// 	}else{
+		// 		var jsons = [];
+		// 		var files = filename;
+		//
+		// 		for(var i = 0; i < files.length; i++)(
+		// 			jsons[i] = $http.get('json/'+files[i])
+		// 		);
+		//
+		// 		$q.all(jsons).then(function(result){
+		// 			var tmp = [];
+		// 			var num = 1;
+		// 			angular.forEach(result, function(response){
+		//
+		// 				for(i = 0; i < response.data.length; i++){
+		// 					response.data[i].weekNum = num;
+		// 				}
+		//
+		// 				tmp.push(response.data);
+		// 				num++;
+		// 			});
+		// 			return tmp;
+		// 		}).then(function(tmpResult){
+		// 			var data = [];
+		// 			angular.forEach(tmpResult, function(values){
+		// 				data = data.concat(values);
+		// 			});
+		// 			$scope.parseData(data);
+		// 		});
+		// 	}
+		//
+		// };
 
 
 		$scope.median = function(values){
@@ -236,9 +320,17 @@
 
 		};
 
+		$scope.$on('gotData', function(event, obj){
+			$scope.loadingShowing = true;
+			$scope.$apply();
+
+			console.log('got data');
+			$scope.parseData(obj);
+		});
+
 		$scope.parseData = function(data){
 			$rootScope.wholeData = data;
-			$('#data').css('display', 'block');
+
 			// console.log(data);
 			$scope.users = [];
 			$scope.groups = [];
@@ -353,7 +445,12 @@
 			for(i = 0; i < data.length; i++){
 				for(j = 0; j < users.length; j++){
 
-					if($scope.userRoleFilter.indexOf(data[i].userRole) > -1 && data[i].playerName === users[j].name){
+					var instructors = [];
+
+					if($scope.userRoleFilter.indexOf('Kuntoutuja') > -1){
+						instructors = ['Ella Niini Muistiohjaaja','Ella Niini','Samppa Valkama', 'Helena Launiainen', 'Tomi Nevalainen','Ulla Arifullen-', 'Ulla Arifullen-Hämäläinen', 'Ulla Arifullen-                       Hämäläinen', 'Teuvo ja Tuuli Testeri', 'Maiju Malli'];
+					}
+					if($scope.userRoleFilter.indexOf(data[i].userRole) > -1 && instructors.indexOf(data[i].playerName) === -1 && data[i].playerName === users[j].name){
 						//console.log(data[i].playerName, data[i]);
 						for(k = 0; k < users[j].data.length; k++){
 
@@ -653,10 +750,13 @@
 			}
 
 			// console.log('groups', groups);
-			// console.log('users', users);
+			//console.log('users', users);
+			console.log('parsing finished', users, groups);
 			$scope.groups = groups;
 			$scope.users = users;
 			$scope.loadingShowing = false;
+			$('#data').css('display', 'block');
+			$scope.$apply();
 		};
 
 	}])
