@@ -67,7 +67,13 @@
 			var numOfFiles = files.length;
 			for(i = 0; i < numOfFiles; i++){
 
-				f = files[i]
+				f = files[i];
+
+				if(f.type !== 'application/json'){
+					alert('Valitse Foramen-data JSON-tiedosto');
+					continue;
+				}
+
 				output.push('<li>', escape(f.name), '</li>');
 
 				var tmp = [];
