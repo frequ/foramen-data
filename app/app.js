@@ -89,7 +89,7 @@
 					})(f);
 
 				}else{
-
+						//multiple files
 						reader = new FileReader();
 						reader.onload = (function(theFile){
 							return function(e) {
@@ -212,8 +212,20 @@
 
 			}else{
 				$scope.previousFilterModel = this.filterModel;
-				$scope.userRoleFilter = [this.filterModel[0]];
-				$scope.groupComparison = this.filterModel[1];
+				$scope.userRoleFilter = this.filterModel.pop();
+				$scope.groupComparison = this.filterModel[this.filterModel.length-1];
+			}
+
+
+			console.log('changed', this.filterModel);
+			console.log('userrolefilter', $scope.userRoleFilter);
+			console.log('groupcomparison', $scope.groupComparison);
+			$scope.render();
+		};
+
+		$scope.render = function(){
+			if($rootScope.wholeData){
+				$scope.$root.$broadcast('gotData', $rootScope.wholeData);
 			}
 		};
 
@@ -328,7 +340,7 @@
 
 		$scope.$on('gotData', function(event, obj){
 			$scope.loadingShowing = true;
-			$scope.$apply();
+			//$scope.$apply();
 
 			console.log('got data');
 			$scope.parseData(obj);
@@ -452,7 +464,7 @@
 				for(j = 0; j < users.length; j++){
 
 					var instructors = [];
-
+					//console.log($scope.userRoleFilter);
 					if($scope.userRoleFilter.indexOf('Kuntoutuja') > -1){
 						instructors = ['Ella Niini Muistiohjaaja','Ella Niini','Samppa Valkama', 'Helena Launiainen', 'Tomi Nevalainen','Ulla Arifullen-', 'Ulla Arifullen-Hämäläinen', 'Ulla Arifullen-                       Hämäläinen', 'Teuvo ja Tuuli Testeri', 'Maiju Malli'];
 					}
@@ -762,7 +774,10 @@
 			$scope.users = users;
 			$scope.loadingShowing = false;
 			$('#data').css('display', 'block');
-			$scope.$apply();
+
+			if(!$scope.$$phase) {
+				$scope.$apply();
+			}
 		};
 
 	}])
