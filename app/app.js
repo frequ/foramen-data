@@ -69,10 +69,10 @@
 
 				f = files[i];
 
-				if(f.type !== 'application/json'){
-					alert('Valitse Foramen-data JSON-tiedosto');
-					continue;
-				}
+				// if(f.type !== 'application/json'){
+				// 	alert('Valitse Foramen-data JSON-tiedosto');
+				// 	continue;
+				// }
 
 				output.push('<li>', escape(f.name), '</li>');
 
@@ -212,8 +212,14 @@
 
 			}else{
 				$scope.previousFilterModel = this.filterModel;
-				$scope.userRoleFilter = this.filterModel.pop();
+
 				$scope.groupComparison = this.filterModel[this.filterModel.length-1];
+				if(this.filterModel.length > 2){
+					$scope.userRoleFilter = [this.filterModel[0], this.filterModel[1]];
+				}else{
+					$scope.userRoleFilter = [this.filterModel[0]];
+				}
+
 			}
 
 
