@@ -69,11 +69,6 @@
 
 				f = files[i];
 
-				// if(f.type !== 'application/json'){
-				// 	alert('Valitse Foramen-data JSON-tiedosto');
-				// 	continue;
-				// }
-
 				output.push('<li>', escape(f.name), '</li>');
 
 				var tmp = [];
@@ -93,12 +88,11 @@
 						reader = new FileReader();
 						reader.onload = (function(theFile){
 							return function(e) {
-								//obj = JSON.parse(e.target.result);
 								var res = JSON.parse(e.target.result);
 								for(i = 0; i < res.length; i++){
 									res[i].weekNum = num;
 								}
-								//console.log(res);
+
 								tmp.push(res);
 								if(files.length <= num){
 
@@ -123,75 +117,6 @@
 		document.getElementById('files').addEventListener('change', $scope.handleFileSelect, false);
 
 	}])
-
-	// .controller('FilesController', ['$scope', '$http', function($scope, $http){
-	//
-	// 	var files = [];
-	// 	var file;
-	//
-	// 	$scope.getFileNames = function(){
-	// 		var promise = $http.get('./json');
-	//
-	// 		promise
-	// 			.success(function(data, status, headers, config){
-	//
-	// 				if(window.location.host){
-	// 					$scope.digForNames(data);
-	// 				}else{
-	//
-	// 					//using from local index.html hack
-	// 					var parsedData = [];
-	// 					$(data).each(function(){
-	//
-	// 						if( this.hasOwnProperty('innerHTML') && this.innerHTML.indexOf('.json') > -1 ){
-	// 							//this numbers shouldn't be changin so hardcoding ok?
-	// 							//console.log($(this).html().substring(8,32));
-	// 							parsedData.push($(this).html().substring(8,32));
-	// 						}
-	//
-	// 					});
-	//
-	// 					$scope.digForNames(parsedData);
-	//
-	// 				}
-	//
-	// 			})
-	// 			.error(function(){
-	// 				console.log('fetching filenames failed');
-	// 			});
-	// 	};
-	//
-	// 	$scope.digForNames = function(data){
-	//
-	// 		var files = [];
-	// 		if(window.location.host){
-	//
-	// 			$(data).find('a:contains(".json")').each(function(){
-	// 				file = this.href.replace(window.location.host, "").replace("http:///","").replace("foramen-data/","");
-	// 				files.push(file);
-	// 			});
-	//
-	// 		}else{
-	//
-	// 			//using from local index.html hack
-	// 			data.forEach(function(file){
-	// 				files.push(file);
-	// 			});
-	//
-	// 		}
-	// 		$scope.files = files;
-	// 	};
-	//
-	// 	$scope.passFileName = function(name){
-	// 		if(name.length > 1){
-	// 				$scope.$root.$broadcast('gotFileName', name, true);
-	// 		}else{
-	// 			$scope.$root.$broadcast('gotFileName', name);
-	// 		}
-	// 	};
-	// 	$scope.getFileNames();
-	// }])
-
 
 	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', '$modal', '$rootScope',
 		function($scope, $http, $anchorScroll, $q, $modal, $rootScope){
@@ -240,11 +165,6 @@
 			}
 		};
 
-		// $scope.setFilters = function(arr, groupComparisonBoolean){
-		// 	$scope.userRoleFilter = arr;
-		// 	$scope.groupComparison = groupComparisonBoolean;
-		// };
-
 		$scope.orderByField = 'game';
 		$scope.orderGroupsByField = 'game';
 		$scope.reverseSort = false;
@@ -276,57 +196,6 @@
 		$scope.scrollTop = function(){
 				$anchorScroll(0);
 		};
-
-		// $scope.$on('gotFileName', function(event, filename, multiple){
-		// 	$scope.loadingShowing = true;
-		// 	$scope.getData(filename, multiple);
-		// });
-
-		// $scope.getData = function(filename, multiple){
-		// 	//console.log('getdata', filename, multiple);
-		// 	var datas = [];
-		// 	if(!multiple){
-		// 		var dataPromise = $http.get('json/'+filename);
-		//
-		// 		dataPromise
-		// 			.success(function(data, status, headers, config){
-		// 				$scope.parseData(data);
-		// 			})
-		// 			.error(function(data){
-		// 				console.log('error fetching data');
-		// 			});
-		//
-		// 	}else{
-		// 		var jsons = [];
-		// 		var files = filename;
-		//
-		// 		for(var i = 0; i < files.length; i++)(
-		// 			jsons[i] = $http.get('json/'+files[i])
-		// 		);
-		//
-		// 		$q.all(jsons).then(function(result){
-		// 			var tmp = [];
-		// 			var num = 1;
-		// 			angular.forEach(result, function(response){
-		//
-		// 				for(i = 0; i < response.data.length; i++){
-		// 					response.data[i].weekNum = num;
-		// 				}
-		//
-		// 				tmp.push(response.data);
-		// 				num++;
-		// 			});
-		// 			return tmp;
-		// 		}).then(function(tmpResult){
-		// 			var data = [];
-		// 			angular.forEach(tmpResult, function(values){
-		// 				data = data.concat(values);
-		// 			});
-		// 			$scope.parseData(data);
-		// 		});
-		// 	}
-		//
-		// };
 
 
 		$scope.median = function(values){
