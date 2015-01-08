@@ -94,7 +94,12 @@
 						reader.onload = (function(theFile){
 							return function(e) {
 								//obj = JSON.parse(e.target.result);
-								tmp.push(JSON.parse(e.target.result));
+								var res = JSON.parse(e.target.result);
+								for(i = 0; i < res.length; i++){
+									res[i].weekNum = num;
+								}
+								//console.log(res);
+								tmp.push(res);
 								if(files.length <= num){
 
 									var data = [];
