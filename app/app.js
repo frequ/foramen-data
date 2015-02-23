@@ -357,9 +357,25 @@
 
 								//gametime
 								if(data[i].duration){
+
 									users[j].data[k].duration += parseInt(data[i].duration,0);
 
 									users[j].data[k].durationsArr.push(parseInt(data[i].duration,0));
+
+								}else if(data[i].endDate && data[i].startDate){
+									//if duration happens to be null (?)
+									//calculate it here
+
+									var calcDur = 0;
+									var endDate = new Date(data[i].endDate);
+									var startDate = new Date(data[i].startDate);
+									calcDur = Math.abs(endDate.getTime() - startDate.getTime());
+									var timeDiff = Math.ceil(calcDur / 1000);
+
+									if(timeDiff > 4){
+										users[j].data[k].duration += parseInt(timeDiff,0);
+										users[j].data[k].durationsArr.push(parseInt(timeDiff,0));
+									}
 								}
 
 								//unfinishes quizzes
@@ -567,6 +583,21 @@
 						//duration might be null? wonder why
 						if(groups[i].data[j].gameData[k].duration !== null){
 							groups[i].data[j].overalls.duration += parseInt(groups[i].data[j].gameData[k].duration,0);
+
+						}else if(groups[i].data[j].gameData[k].endDate && groups[i].data[j].gameData[k].startDate){
+							//if duration happens to be null (?)
+							//calculate it here - unfinished quizzes shouldn't have endDate, right?
+
+							var calcDur = 0;
+							var endDate = new Date(groups[i].data[j].gameData[k].endDate);
+							var startDate = new Date(groups[i].data[j].gameData[k].startDate);
+							calcDur = Math.abs(endDate.getTime() - startDate.getTime());
+							var timeDiff = Math.ceil(calcDur / 1000);
+
+							console.log(groups[i].data[j].gameData[k], timeDiff);
+							if(timeDiff > 4){
+								groups[i].data[j].overalls.duration += parseInt(timeDiff,0);
+							}
 
 						}
 
