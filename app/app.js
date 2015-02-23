@@ -352,6 +352,17 @@
 						//console.log(data[i].playerName, data[i]);
 						for(k = 0; k < users[j].data.length; k++){
 
+							//ääkköset hack
+							if(data[i].gameTitle === "Jatkanshakki"){
+								data[i].gameTitle = "Jätkänshakki";
+							}else if(data[i].gameTitle === "Muista nakemasi esineet"){
+								data[i].gameTitle = "Muista näkemäsi esineet";
+							}else if(data[i].gameTitle === "Paattele salasana"){
+								data[i].gameTitle = "Päättele salasana"
+							}else if(data[i].gameTitle === "Muista nakemasi numerosarja"){
+								data[i].gameTitle = "Muista näkemäsi numerosarja";
+							}
+
 							if(data[i].gameTitle === users[j].data[k].game ){
 								users[j].data[k].plays.push(data[i]);
 
@@ -594,7 +605,6 @@
 							calcDur = Math.abs(endDate.getTime() - startDate.getTime());
 							var timeDiff = Math.ceil(calcDur / 1000);
 
-							console.log(groups[i].data[j].gameData[k], timeDiff);
 							if(timeDiff > 4){
 								groups[i].data[j].overalls.duration += parseInt(timeDiff,0);
 							}
