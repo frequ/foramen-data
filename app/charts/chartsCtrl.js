@@ -1,4 +1,5 @@
 (function(){
+    'use strict';
 
   angular.module('chartsCtrl', ['ui.bootstrap'])
 
@@ -192,6 +193,7 @@
       series: gameLabels,
       data: data
     };
+
 
   });
 

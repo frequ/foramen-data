@@ -6,23 +6,24 @@
     <button class="btn btn-default btn-lg" ng-click="close()">Sulje</button>
   </div>
 
-  <div ng-if="modalVisible && showGameComparison" id="chart" ac-chart="'pie'"
+  <div class="printable-chart" ng-if="modalVisible && showGameComparison" id="chart" ac-chart="'pie'"
     data-ac-data="gameComparisonData"
     data-ac-config="gameComparisonConfig">
   </div>
 
-  <div ng-if="modalVisible && showPlayBars" id="bar-chart" ac-chart="'bar'"
+  <div class="printable-chart" ng-if="modalVisible && showPlayBars" id="bar-chart" ac-chart="'bar'"
     data-ac-data="playBarsData"
     data-ac-config="playBarsConfig">
   </div>
 
-  <div ng-if="modalVisible && showWeekPlayBars" id="bar-chart" ac-chart="'bar'"
+  <div class="printable-chart" ng-if="modalVisible && showWeekPlayBars" id="bar-chart" ac-chart="'bar'"
     data-ac-data="weekPlayBarsData"
     data-ac-config="weekPlayBarsConfig">
   </div>
 
-
   <div ng-hide="chartError" class="modal-footer">
+    <button class="btn btn-default" print-div=".printable-chart">Tulosta</button>
+
     <button class="btn btn-default" ng-class="{'btn-primary':showGameComparison}"
     ng-click="showPlayBars=false; showGameComparison=true; showWeekPlayBars=false;">
       Näytä pelijakauma

@@ -1,5 +1,6 @@
 // out: main.css, compress: true
 body{
+
 	a{
 		cursor: pointer;
 	}
@@ -16,6 +17,14 @@ body{
 		background-color: red;
 	}
 
+	@media print{
+		.printable-chart{
+			.ac-legend-box {
+				-webkit-print-color-adjust: exact;
+			}
+		}
+	}
+
 	#chart{
 		padding: 0 20px;
 		width: 1000px;
@@ -30,6 +39,7 @@ body{
 			padding-right: 3px;
 			text-align: left;
 		}
+
 	}
 
 	#bar-chart{
@@ -215,7 +225,4 @@ body{
   border-radius: 50%;
   display: inline-block;
 }
-
-
-
 }

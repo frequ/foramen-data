@@ -4,6 +4,13 @@
 
 	var app = angular.module('foramendata', ['ui.bootstrap','angularCharts','chartsCtrl','angularMoment'])
 
+
+	.run(function($rootScope, $templateCache) {
+	   $rootScope.$on('$viewContentLoaded', function() {
+	      $templateCache.removeAll();
+	   });
+	})
+
 	.directive("scroll", function($window) {
 		return function(scope, element, attr){
 			angular.element($window).bind("scroll", function(){
@@ -175,7 +182,8 @@
 			$scope.user = user;
 
 			var modalInstance = $modal.open({
-				templateUrl: 'charts.html',
+				//templateUrl: 'app/charts/charts.html' same origin policy for file:// so template in index.html
+				templateUrl: 'chartsContent.html',
 				controller: 'ModalInstanceController',
 				size: size,
 				backdrop: 'static',
@@ -362,6 +370,10 @@
 							}else if(data[i].gameTitle === "Muista nakemasi numerosarja"){
 								data[i].gameTitle = "Muista näkemäsi numerosarja";
 							}
+
+							// if(data[i].playerName === "Tarja ja Seppo Väkevä"){
+							// 	console.log(data[i].endDate);
+							// }
 
 							if(data[i].gameTitle === users[j].data[k].game ){
 								users[j].data[k].plays.push(data[i]);
@@ -711,7 +723,45 @@
 			$modalInstance.dismiss('close');
 		};
 
-	});
+	})
 
+	.directive('printDiv', function(){
+		//iframe print hack(ish)
+
+		return {
+			restrict: 'A',
+			link: function(scope, element, attrs){
+				element.bind('click', function(e){
+					e.preventDefault();
+					PrintElem(attrs.printDiv);
+				});
+
+				function PrintElem(elem){
+					PrintWithIframe($(elem).html());
+				}
+
+				function PrintWithIframe(data){
+					if( $('iframe#printf').size() == 0 ){
+						$('html').append('<iframe id="printf" name="printf"></iframe>');
+						var mywindow = window.frames["printf"];
+						mywindow.document.write('<html><head><title></title><style>@page {margin: 25mm 0mm 25mm 5mm}</style>'
+							+ '</head><body><div>'
+							+ data
+							+ '</div></body></html>');
+
+						$(mywindow.document).ready(function(){
+							mywindow.print();
+							setTimeout(function(){
+								$('iframe#printf').remove();
+							},
+							2000);
+						});
+					}
+					return true;
+
+				}
+			}
+		};
+	});
 
 })();
