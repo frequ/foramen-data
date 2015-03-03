@@ -6,8 +6,10 @@
 
 
 	.run(function($rootScope, $templateCache) {
+
 	   $rootScope.$on('$viewContentLoaded', function() {
-	      $templateCache.removeAll();
+	      	$templateCache.removeAll();
+			$rootScope.loadingShowing = false;
 	   });
 	})
 
@@ -72,6 +74,9 @@
 			var i, f, reader, obj;
 
 			var numOfFiles = files.length;
+			
+			$rootScope.loadingShowing = true;
+			$rootScope.$apply();
 			for(i = 0; i < numOfFiles; i++){
 
 				f = files[i];
@@ -131,7 +136,7 @@
 		//defaults
 		$scope.userRoleFilter = ['Kuntoutuja'];
 		$scope.groupComparison = false;
-		$scope.loadingShowing = false;
+
 
 		//filtering with one model&button:
 		//filter attribute & targetGroup boolean
@@ -227,8 +232,7 @@
 		};
 
 		$scope.$on('gotData', function(event, obj){
-			$scope.loadingShowing = true;
-			//$scope.$apply();
+
 
 			console.log('got data');
 			$scope.parseData(obj);
@@ -705,7 +709,8 @@
 			console.log('parsing finished', users, groups);
 			$scope.groups = groups;
 			$scope.users = users;
-			$scope.loadingShowing = false;
+
+			$rootScope.loadingShowing = false;
 			$('#data').css('display', 'block');
 
 			if(!$scope.$$phase) {
