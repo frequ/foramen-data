@@ -1,4 +1,16 @@
 // out: main.css, compress: true
+
+@media print {
+	.ac-legend{
+		display: none !important;
+	}
+	.printable-chart{
+		.ac-legend-box {
+			-webkit-print-color-adjust: exact;
+		}
+	}
+}
+
 body{
 
 	a{
@@ -17,13 +29,6 @@ body{
 		background-color: red;
 	}
 
-	@media print{
-		.printable-chart{
-			.ac-legend-box {
-				-webkit-print-color-adjust: exact;
-			}
-		}
-	}
 
 	#chart{
 		padding: 0 20px;
@@ -47,12 +52,20 @@ body{
 		height: 600px;
 		margin: 0 auto;
 		margin-top: 25px;
+
 		.ac-title{
 			display: inline-block;
 			font-size: 150%;
 			margin: 0 20px;
 		}
+
+		.ac-legend{
+			display: none !important;
+		}
 	}
+
+
+
 
 	.chartError{
 		position: absolute;
@@ -225,4 +238,8 @@ body{
   border-radius: 50%;
   display: inline-block;
 }
+}
+
+.hide{
+	display: none !important;
 }

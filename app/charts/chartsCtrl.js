@@ -27,12 +27,15 @@
         $scope.chartError = true;
         return;
       }
-      data.push({
-        'x': user.data[i].game,
-        'y': [y],
-        'tooltip': user.data[i].game+' <br/> Harjoitteluaika '+y+'% <br/> Aikaa käytetty: '+ $filter('readableTime')(user.data[i].duration,1) +
-                    ' <br/> Harjoitetta tehty: '+user.data[i].plays.length +'/'+user.overall.totalPlays
-        });
+      if(user.data[i].plays.length > 0){
+          data.push({
+            'x': user.data[i].game,
+            'y': [y],
+            'tooltip': user.data[i].game+' <br/> Harjoitteluaika '+y+'% <br/> Aikaa käytetty: '+ $filter('readableTime')(user.data[i].duration,1) +
+                        ' <br/> Harjoitetta tehty: '+user.data[i].plays.length +'/'+user.overall.totalPlays
+            });
+      }
+
     }
 
     var dayLabels = [], dayData = [];
@@ -175,7 +178,8 @@
 
 
     $scope.gameComparisonConfig  = {
-      title: 'Harjoittelijan '+ user.name + ' harjoitteluajan jakautuminen:',
+      title: 'Harjoittelijan '+ user.name + ' harjoitteluajan jakautuminen ajanjaksolla '+ $filter('date')($rootScope.smallestDate, 'd.M') +
+        ' - '+$filter('date')($rootScope.largestDate, 'd.M.yyyy'),
       tooltips: true,
       labels: true,
       mouseover: function() {},

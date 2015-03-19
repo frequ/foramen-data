@@ -74,7 +74,7 @@
 			var i, f, reader, obj;
 
 			var numOfFiles = files.length;
-			
+
 			$rootScope.loadingShowing = true;
 			$rootScope.$apply();
 			for(i = 0; i < numOfFiles; i++){
@@ -742,14 +742,34 @@
 				});
 
 				function PrintElem(elem){
-					PrintWithIframe($(elem).html());
+					var myElem = $(elem).clone();
+
+					console.log(myElem.attr('id'));
+
+					var orientation;
+					if(myElem.attr('id') === "bar-chart") {
+						myElem.find('.ac-legend').remove();
+						orientation = 'landscape';
+					}else{
+						orientation = 'portrait';
+					}
+
+
+					var html = $(myElem).html();
+
+					//console.log(html);
+
+					PrintWithIframe(html, orientation);
 				}
 
-				function PrintWithIframe(data){
+				function PrintWithIframe(data, orientation){
+
+					// console.log(data);
+
 					if( $('iframe#printf').size() == 0 ){
 						$('html').append('<iframe id="printf" name="printf"></iframe>');
 						var mywindow = window.frames["printf"];
-						mywindow.document.write('<html><head><title></title><style>@page {margin: 25mm 0mm 25mm 5mm}</style>'
+						mywindow.document.write('<html><head><title></title><style>@page {margin: 10mm 0mm 25mm 5mm; size: '+orientation+'}</style>'
 							+ '</head><body><div>'
 							+ data
 							+ '</div></body></html>');
