@@ -14,7 +14,7 @@
 	<link rel="stylesheet" href="css/main.css">
 </head>
 
-<body ng-controller="DataController as dataCtrl">
+<body ng-controller="DataController as dataCtrl" ng-cloak>
 
 	<div id="selection" ng-controller="FileAPIController as fileAPICtrl">
 		<input type="file" id="files" name="files[]" multiple></input>
@@ -23,7 +23,7 @@
 			Ei valittuja tiedostoja
 		</div>
 
-		<label>Suodata dataa:</label><br/>
+		<label>Suodata dataa:</label> {{loadingShowing}}<br/>
 		<div class="btn-group">
 			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Kuntoutuja',false]" uncheckable>Vain kuntoutujat</label>
 			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Läheinen',false]" uncheckable>Vain läheiset</label>
@@ -32,20 +32,11 @@
 		</div>
 	</div>
 
-  <!-- <div id="selection" ng-controller="FilesController as filesCtrl">
-		<label>Valitse tiedosto(t) :</label>
-    <select name="selectFileFromDir" class="form-control" ng-model="fileName" ng-options="file as file for file in files" multiple >
-		</select>
-		<br/>
-		<button class="btn btn-default" ng-click="passFileName(fileName); setFilters(['Kuntoutuja'], false);">Hae data: Kuntoutuja</button>
-		<button class="btn btn-default" ng-click="passFileName(fileName); setFilters(['Kuntoutuja', 'Läheinen'], false);">Hae data: Kuntoutuja sekä Läheiset</button>
-  	<button class="btn btn-default" ng-click="passFileName(fileName); setFilters(['Kuntoutuja'], true);">Hae data: Ryhmävertailu</button>
-	</div> -->
-
 	<div id="data" ng-cloak scroll ng-class="{min:boolChangeClass}">
 
 		<div class="header clearfix">
-			<h1>Harjoitukset ajalta {{smallestDate | date: 'd.M'}} - {{largestDate | date: 'd.M.yyyy'}}</h1>
+
+			<h1>Harjoitukset ajalta {{smallestDate | amDateFormat: 'D.M' }} - {{largestDate | amDateFormat: 'D.M.YYYY' }}</h1>
 			<nav>
 				<button class="btn btn-default" ng-click="forceShowUnplayedGames = !forceShowUnplayedGames">Näytä/piilota harjoitukset joita ei ole tehty</button>
 				<button class="btn btn-default" ng-click="scrollTop()">Takaisin ylös</button>
@@ -54,7 +45,7 @@
 		</div>
 
 
-		<div class="dataset clearfix" ng-show="!groupComparison && user.overall.totalPlays > 0"
+		<div class="dataset clearfix" ng-show="!groupComparison"
 			ng-repeat="user in users | orderBy:'name' track by $index">
 
 			<h2>{{user.name}} <small>{{user.group}}</small>
@@ -72,25 +63,25 @@
 					<th><a ng-click="orderByField='plays.length-unfinished'; reverseSort = !reverseSort">
 						Loppuun pelatut harjoitteet
 					</a></th>
-					<th><a ng-click="orderByField='finishedPercentage'; reverseSort = !reverseSort">
+					<th><a ng-click="orderByField='(plays.length-unfinished)/plays.length'; reverseSort = !reverseSort">
 						Loppuun pelattujen harjoitteiden prosentti
 					</a></th>
-					<th><a ng-click="orderByField='level1'; reverseSort = !reverseSort">
+					<th><a ng-click="orderByField='levels[0]'; reverseSort = !reverseSort">
 						Taso 1
 					</a></th>
-					<th><a ng-click="orderByField='level2'; reverseSort = !reverseSort">
+					<th><a ng-click="orderByField='levels[1]'; reverseSort = !reverseSort">
 						Taso 2
 					</a></th>
-					<th><a ng-click="orderByField='level3'; reverseSort = !reverseSort">
+					<th><a ng-click="orderByField='levels[2]'; reverseSort = !reverseSort">
 						Taso 3
 					</a></th>
 					<th><a ng-click="orderByField='duration'; reverseSort = !reverseSort">
-						Käytetty aika yht. per harjoite
+						Käytetty aika yhteensä
 					</a></th>
-					<th><a ng-click="orderByField='exerciseTimeMedian'; reverseSort = !reverseSort">
+					<th><a ng-click="orderByField='durationMedian'; reverseSort = !reverseSort">
 						Harjoitteen keston Mediaani
 					</a></th>
-					<th><a ng-click="orderByField='exerciseTimeAverage'; reverseSort = !reverseSort">
+					<th><a ng-click="orderByField='duration/plays.length'; reverseSort = !reverseSort">
 						Harjoitteen keston Keskiarvo
 					</a></th>
 					<th><a ng-click="orderByField='exerciseDays.length'; reverseSort = !reverseSort">
@@ -106,13 +97,13 @@
 					<td class="align-left">{{data.game}}</td>
 					<td>{{data.plays.length}}</td>
 					<td>{{data.plays.length - data.unfinished}}</td>
-					<td>{{data.finishedPercentage | percentage:1}}</td>
-					<td>{{data.level1}}</td>
-					<td>{{data.level2}}</td>
-					<td>{{data.level3}}</td>
+					<td>{{(data.plays.length - data.unfinished) / data.plays.length | percentage:1}}</td>
+					<td>{{data.levels[0]}}</td>
+					<td>{{data.levels[1]}}</td>
+					<td>{{data.levels[2]}}</td>
 					<td>{{data.duration | readableTime}}</td>
-					<td>{{data.exerciseTimeMedian | readableTime}}</td>
-					<td>{{data.exerciseTimeAverage | readableTime}}</td>
+					<td>{{data.durationMedian | readableTime}}</td>
+					<td>{{data.duration / data.plays.length | readableTime}}</td>
 					<td>{{data.exerciseDays.length}}</td>
 					<td>{{data.duration / data.exerciseDays.length | readableTime}}</td>
 				</tr>
@@ -122,11 +113,11 @@
 					<td>{{user.overall.totalPlays}}</td>
 					<td>{{user.overall.totalPlays - user.overall.unfinished}}</td>
 					<td>{{ (user.overall.totalPlays - user.overall.unfinished) / user.overall.totalPlays | percentage:1}}</td>
-					<td>{{user.overall.level1}}</td>
-					<td>{{user.overall.level2}}</td>
-					<td>{{user.overall.level3}}</td>
+					<td>{{user.overall.levels[0]}}</td>
+					<td>{{user.overall.levels[1]}}</td>
+					<td>{{user.overall.levels[2]}}</td>
 					<td>{{user.overall.duration | readableTime}}</td>
-					<td>{{median(user.overall.durationsArr) | readableTime}}</td>
+					<td>{{user.overall.durationMedian | readableTime}}</td>
 					<td>{{user.overall.duration / user.overall.totalPlays | readableTime}}</td>
 					<td>{{user.overall.exerciseDays.length}}</td>
 					<td>{{user.overall.duration / user.overall.exerciseDays.length | readableTime}}</td>
@@ -137,61 +128,62 @@
 
 		</div>
 
-		<div class="dataset clearfix" ng-show="groupComparison && group.members.length > 0"
+			<div class="dataset clearfix" ng-show="groupComparison && group.members.length > 0 && group.overall.totalPlays > 0"
 			ng-repeat="group in groups | orderBy:'name' track by $index">
-			<h2>{{group.name}} <small>Harjoittelijoita löytyi {{group.members.length}} kpl</small></h2>
+			<h2>{{group.name}} <small>Harjoittelijoita löytyi {{group.members.length}} kpl.</small></h2>
 
 			<table class="table table-striped table-bordered">
 				<tr>
 					<th><a ng-click="orderGroupsByField='game'; reverseSort = !reverseSort">
 						Harjoitus
 					</a></th>
-					<th><a ng-click="orderGroupsByField='gameData.length'; reverseSort = !reverseSort">
+					<th><a ng-click="orderGroupsByField='plays.length'; reverseSort = !reverseSort">
 						Aloitetut harjoitteet
 					</a></th>
-					<th><a ng-click="orderGroupsByField='gameData.length-overalls.unfinishedPlays'; reverseSort = !reverseSort">
+					<th><a ng-click="orderGroupsByField='plays.length-unfinished'; reverseSort = !reverseSort">
 						Loppuun pelatut harjoitteet
 					</a></th>
-					<th><a ng-click="orderGroupsByField='overalls.finishedPercentage'; reverseSort = !reverseSort">
-						Loppuun pelattujen harjoitteiden prosentti</a></th>
-					<th><a ng-click="orderGroupsByField='overalls.finishedAverage'; reverseSort = !reverseSort">
-						Loppuun pelattujen harjoitteiden keskiarvo</a></th>
-					<th><a ng-click="orderGroupsByField='overalls.lvl1Plays'; reverseSort = !reverseSort">
+					<th><a ng-click="orderGroupsByField='(plays.length-unfinished)/plays.length'; reverseSort = !reverseSort">
+						Loppuun pelattujen harjoitteiden prosentti <small>(loppuunpelattujen harjoitteiden määrä / kokonaispelikerrat)</small></a></th>
+					<th><a ng-click="orderGroupsByField='plays.length-group.unfinished'; reverseSort = !reverseSort">
+						Loppuun pelattujen harjoitteiden keskiarvo <small>(loppuunpelattujen harjoitteiden määrä / harjoittelijoiden määrä)</small></a></th>
+					<th><a ng-click="orderGroupsByField='levels[0]'; reverseSort = !reverseSort">
 						Taso I
 					</a></th>
-					<th><a ng-click="orderGroupsByField='overalls.lvl2Plays'; reverseSort = !reverseSort">
+					<th><a ng-click="orderGroupsByField='levels[1]'; reverseSort = !reverseSort">
 						Taso II
 					</a></th>
-					<th><a ng-click="orderGroupsByField='overalls.lvl3Plays'; reverseSort = !reverseSort">
+					<th><a ng-click="orderGroupsByField='levels[2]'; reverseSort = !reverseSort">
 						Taso III
 					</a></th>
-					<th><a ng-click="orderGroupsByField='overalls.duration'; reverseSort = !reverseSort">
+					<th><a ng-click="orderGroupsByField='duration'; reverseSort = !reverseSort">
 						Harjoituksessa käytetty aika
 					</a></th>
 				</tr>
 
-				<tr ng-repeat="data in group.data | orderBy: orderGroupsByField: reverseSort">
+				<tr ng-repeat="data in group.data | orderBy: orderGroupsByField: reverseSort"
+				ng-show="forceShowUnplayedGames || data.plays.length > 0">
 					<td class="align-left">{{data.game}}</td>
-					<td>{{data.gameData.length}}</td>
-					<td>{{data.gameData.length - data.overalls.unfinishedPlays}}</td>
-					<td>{{data.overalls.finishedPercentage | percentage:1}}</td>
-					<td>{{data.overalls.finishedAverage | number: 1}}</td>
-					<td>{{data.overalls.lvl1Plays}}</td>
-					<td>{{data.overalls.lvl2Plays}}</td>
-					<td>{{data.overalls.lvl3Plays}}</td>
-					<td>{{data.overalls.duration | readableTime}}</td>
+					<td>{{data.plays.length}}</td>
+					<td>{{data.plays.length - data.unfinished}}</td>
+					<td>{{ (data.plays.length - data.unfinished) / data.plays.length | percentage:1}}</td>
+					<td>{{ (data.plays.length - data.unfinished) / group.members.length | number: 1}}</td>
+					<td>{{data.levels[0]}}</td>
+					<td>{{data.levels[1]}}</td>
+					<td>{{data.levels[2]}}</td>
+					<td>{{data.duration | readableTime}}</td>
 				</tr>
 
 				<tr class="yellow-row">
 					<td class="align-left">Yhteensä</td>
-					<td>{{group.sum.allGamePlays}}</td>
-					<td>{{group.sum.allGamePlays - group.sum.unfinishedPlays}}</td>
-					<td>{{ (group.sum.allGamePlays - group.sum.unfinishedPlays) / group.sum.allGamePlays  | percentage: 1 }}</td>
-					<td>{{ (group.sum.allGamePlays - group.sum.unfinishedPlays) / group.members.length | number: 1}}</td>
-					<td>{{group.sum.lvl1Plays}}</td>
-					<td>{{group.sum.lvl2Plays}}</td>
-					<td>{{group.sum.lvl3Plays}}</td>
-					<td>{{group.sum.duration | readableTime}}</td>
+					<td>{{group.overall.totalPlays}}</td>
+					<td>{{group.overall.totalPlays - group.overall.unfinished}}</td>
+					<td>{{ (group.overall.totalPlays - group.overall.unfinished) / group.overall.totalPlays  | percentage: 1 }}</td>
+					<td>{{ (group.overall.totalPlays - group.overall.unfinished) / group.members.length | number: 1}}</td>
+					<td>{{group.overall.levels[0]}}</td>
+					<td>{{group.overall.levels[1]}}</td>
+					<td>{{group.overall.levels[2]}}</td>
+					<td>{{group.overall.duration | readableTime}}</td>
 				</tr>
 
 			</table>
@@ -220,93 +212,53 @@
 
 </body>
 
-<script type="text/ng-template" id="charts.html">
-	<div ng-controller="ChartsController as chartsCtrl" ng-init="modalVisible=true;">
-		<button class="btn btn-default" ng-click="close()">Sulje</button>
-
-		<div ng-show="chartError" class="chartError">
-			<h1>Käyttäjältä ei saatavilla dataa.</h1>
-			<button class="btn btn-default btn-lg" ng-click="close()">Sulje</button>
-		</div>
-
-		<div ng-if="modalVisible && showGameComparison" id="chart" ac-chart="'pie'"
-			data-ac-data="gameComparisonData"
-			data-ac-config="gameComparisonConfig">
-		</div>
-
-		<div ng-if="modalVisible && showPlayBars" id="bar-chart" ac-chart="'bar'"
-			data-ac-data="playBarsData"
-			data-ac-config="playBarsConfig">
-		</div>
-
-		<div ng-if="modalVisible && showWeekPlayBars" id="bar-chart" ac-chart="'bar'"
-			data-ac-data="weekPlayBarsData"
-			data-ac-config="weekPlayBarsConfig">
-		</div>
-
-
-		<div ng-hide="chartError" class="modal-footer">
-			<button class="btn btn-default" ng-class="{'btn-primary':showGameComparison}"
-			ng-click="showPlayBars=false; showGameComparison=true; showWeekPlayBars=false;">
-			Näytä pelijakauma
-			</button>
-			<button class="btn btn-default" ng-class="{'btn-primary':showPlayBars}"
-			ng-click="showGameComparison=false; showPlayBars=true; showWeekPlayBars=false;">
-			Näytä harjoittelun jakautuminen päivittäin
-			</button>
-			<button ng-show="multiple" class="btn btn-default"
-			ng-class="{'btn-primary':showWeekPlayBars}"
-			ng-click="showGameComparison=false; showPlayBars=false; showWeekPlayBars=true;">
-			Näytä harjoittelun jakautuminen viikoittain
-			</button>
-		</div>
-	</div>
-</script>
-
 <script type="text/ng-template" id="chartsContent.html">
 
-<div ng-controller="ChartsController as chartsCtrl" ng-init="modalVisible=true;">
-  <button class="btn btn-default" ng-click="close()">Sulje</button>
+<div ng-controller="ChartsController as chartsCtrl" ng-init="modalVisible=true; initCharts()">
+	<button class="btn btn-default" ng-click="close()">Sulje</button>
 
-  <div ng-show="chartError" class="chartError">
-    <h1>Käyttäjältä ei saatavilla dataa.</h1>
-    <button class="btn btn-default btn-lg" ng-click="close()">Sulje</button>
-  </div>
+	<div ng-show="modalDataLoading" class="loading chartError colored-bg">
+		<h1>Ladataan...</h1>
+		<div class="loading-spinner loading-spinner-black"></div>
+	</div>
 
-  <div class="printable-chart" ng-if="modalVisible && showGameComparison" id="chart" ac-chart="'pie'"
-    data-ac-data="gameComparisonData"
-    data-ac-config="gameComparisonConfig">
-  </div>
+	<div ng-show="chartError" class="chartError">
+		<h1>Käyttäjältä ei saatavilla dataa.</h1>
+		<button class="btn btn-default btn-lg" ng-click="close()">Sulje</button>
+	</div>
 
-  <div class="printable-chart" ng-if="modalVisible && showPlayBars" id="bar-chart" ac-chart="'bar'"
-    data-ac-data="playBarsData"
-    data-ac-config="playBarsConfig">
-  </div>
+	<div class="printable-chart" ng-if="modalVisible && showGameComparison" id="chart" ac-chart="'pie'"
+	data-ac-data="gameComparisonData"
+	data-ac-config="gameComparisonConfig">
+	</div>
 
-  <div class="printable-chart" ng-if="modalVisible && showWeekPlayBars" id="bar-chart" ac-chart="'bar'"
-    data-ac-data="weekPlayBarsData"
-    data-ac-config="weekPlayBarsConfig">
-  </div>
+	<div class="printable-chart" ng-if="modalVisible && showPlayBars" id="bar-chart" ac-chart="'bar'"
+	data-ac-data="playBarsData"
+	data-ac-config="playBarsConfig">
+	</div>
 
-  <div ng-hide="chartError" class="modal-footer">
-    <button class="btn btn-default" print-div=".printable-chart">Tulosta</button>
+	<div class="printable-chart" ng-if="modalVisible && showWeekPlayBars" id="bar-chart" ac-chart="'bar'"
+	data-ac-data="weekPlayBarsData"
+	data-ac-config="weekPlayBarsConfig">
+	</div>
 
-    <button class="btn btn-default" ng-class="{'btn-primary':showGameComparison}"
-    ng-click="showPlayBars=false; showGameComparison=true; showWeekPlayBars=false;">
-      Näytä pelijakauma
-      </button>
-    <button class="btn btn-default" ng-class="{'btn-primary':showPlayBars}"
-    ng-click="showGameComparison=false; showPlayBars=true; showWeekPlayBars=false;">
-      Näytä harjoittelun jakautuminen päivittäin
-    </button>
-    <button ng-show="multiple" class="btn btn-default"
-    ng-class="{'btn-primary':showWeekPlayBars}"
-    ng-click="showGameComparison=false; showPlayBars=false; showWeekPlayBars=true;">
-      Näytä harjoittelun jakautuminen viikoittain
-    </button>
-  </div>
+	<div ng-hide="chartError || modalDataLoading" class="modal-footer">
+		<button class="btn btn-default" print-div=".printable-chart">Tulosta</button>
 
-
+		<button class="btn btn-default" ng-class="{'btn-primary':showGameComparison}"
+		ng-click="showPlayBars=false; showGameComparison=true; showWeekPlayBars=false;">
+			Näytä pelijakauma
+		</button>
+		<button class="btn btn-default" ng-class="{'btn-primary':showPlayBars}"
+		ng-click="showGameComparison=false; showPlayBars=true; showWeekPlayBars=false;">
+			Näytä harjoittelun jakautuminen päivittäin
+		</button>
+		<button ng-show="multiple" class="btn btn-default"
+		ng-class="{'btn-primary':showWeekPlayBars}"
+		ng-click="showGameComparison=false; showPlayBars=false; showWeekPlayBars=true;">
+			Näytä harjoittelun jakautuminen viikoittain
+		</button>
+	</div>
 </div>
 
 </script>
@@ -323,6 +275,7 @@
 <script type="text/javascript" src="app/lib/angular-bootstrap/ui-bootstrap.min.js"></script>
 <script type="text/javascript" src="app/lib/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 
+<script type="text/javascript" src="app/lib/underscore/underscore-min.js"></script>
 
 <script type="text/javascript" src="app/lib/d3/d3.min.js"></script>
 <script type="text/javascript" src="app/lib/angular-charts/dist/angular-charts.js"></script>

@@ -2,8 +2,7 @@
 	"use strict";
 	/*global $:false, jQuery:false */
 
-	var app = angular.module('foramendata', ['ui.bootstrap','angularCharts','chartsCtrl','angularMoment'])
-
+	var app = angular.module('foramendata', ['ui.bootstrap','angularMoment', 'charts'])
 
 	.run(function($rootScope, $templateCache) {
 
@@ -37,9 +36,9 @@
 	}])
 
 	.filter('iif', function () {
-   	return function(input, trueValue, falseValue) {
-    	return input ? trueValue : falseValue;
-  	};
+		return function(input, trueValue, falseValue) {
+			return input ? trueValue : falseValue;
+		};
 	})
 
 	.filter('readableTime', ['$filter', function ($filter) {
@@ -64,7 +63,7 @@
 		};
 	}])
 
-	.controller('FileAPIController', ['$scope','$rootScope', function($scope, $rootScope){
+	.controller('FileAPIController', ['$scope','$rootScope','dataFactory', function($scope, $rootScope, dataFactory){
 
 		$scope.handleFileSelect = function(event){
 
@@ -91,7 +90,8 @@
 					reader.onload = (function(theFile){
 						return function(e) {
 							obj = JSON.parse(e.target.result);
-							$scope.$root.$broadcast('gotData', obj);
+							$rootScope.$broadcast('gotData', obj);
+							dataFactory.setData(obj);
 						};
 					})(f);
 
@@ -113,7 +113,8 @@
 										data = data.concat(values);
 									});
 
-									$scope.$root.$broadcast('gotData', data);
+									$rootScope.$broadcast('gotData', data);
+									dataFactory.setData(data);
 								}
 								num++;
 							};
@@ -121,30 +122,28 @@
 				}
 				reader.readAsText(f);
 			}
-
 			document.getElementById('fileList').innerHTML = '<ul>'+ output.join('') + '</ul>';
 
 		};
-
 		document.getElementById('files').addEventListener('change', $scope.handleFileSelect, false);
 
 	}])
 
-	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', '$modal', '$rootScope',
-		function($scope, $http, $anchorScroll, $q, $modal, $rootScope){
+	.controller('DataController', ['$scope','$http', '$anchorScroll', '$q', '$modal', '$rootScope', '$log', 'dataFactory',
+		function($scope, $http, $anchorScroll, $q, $modal, $rootScope, $log, dataFactory){
 
 		//defaults
 		$scope.userRoleFilter = ['Kuntoutuja'];
 		$scope.groupComparison = false;
 
-
 		//filtering with one model&button:
 		//filter attribute & targetGroup boolean
 		$scope.filterModel = ['Kuntoutuja',false];
+		$scope.instructors = [];
 
 		$scope.filterModelChanged = function(){
 
-			if(!this.filterModel){
+			if (!this.filterModel) {
 
 				if($scope.previousFilterModel){
 					this.filterModel = $scope.previousFilterModel;
@@ -152,28 +151,25 @@
 					this.filterModel = $scope.filterModel;
 				}
 
-			}else{
+			} else {
 				$scope.previousFilterModel = this.filterModel;
 
 				$scope.groupComparison = this.filterModel[this.filterModel.length-1];
-				if(this.filterModel.length > 2){
+				if (this.filterModel.length > 2) {
 					$scope.userRoleFilter = [this.filterModel[0], this.filterModel[1]];
 				}else{
 					$scope.userRoleFilter = [this.filterModel[0]];
 				}
 
 			}
-
-
-			console.log('changed', this.filterModel);
-			console.log('userrolefilter', $scope.userRoleFilter);
-			console.log('groupcomparison', $scope.groupComparison);
+			
 			$scope.render();
 		};
 
 		$scope.render = function(){
-			if($rootScope.wholeData){
-				$scope.$root.$broadcast('gotData', $rootScope.wholeData);
+			var data = dataFactory.getData();
+			if(data && data.length > 0){
+				$rootScope.$broadcast('gotData', data);
 			}
 		};
 
@@ -184,10 +180,10 @@
 		$scope.forceShowUnplayedGames = false;
 
 		$scope.openModal = function (user, size) {
+
 			$scope.user = user;
 
 			var modalInstance = $modal.open({
-				//templateUrl: 'app/charts/charts.html' same origin policy for file:// so template in index.html
 				templateUrl: 'chartsContent.html',
 				controller: 'ModalInstanceController',
 				size: size,
@@ -207,7 +203,7 @@
 		};
 
 		$scope.scrollTop = function(){
-				$anchorScroll(0);
+			$anchorScroll(0);
 		};
 
 
@@ -224,491 +220,32 @@
 			var half = Math.floor(values.length/2);
 
 			if(values.length % 2){
-				return values[half];
+				return parseInt(values[half]);
 			}else{
-				return (values[half-1] + values[half]) / 2;
+				return parseInt((values[half-1] + values[half]) / 2);
 			}
 
 		};
 
 		$scope.$on('gotData', function(event, obj){
+			console.log('got data, starting parsing '+ obj.length + ' items');
+			$scope.parsingStarted = moment();
 
+			if ($scope.groupComparison){
+				$scope.parseGroupData(obj);
+			} else {
+				$scope.parseUserData(obj);
+			}
 
-			console.log('got data');
-			$scope.parseData(obj);
 		});
 
-		$scope.parseData = function(data){
-			$rootScope.wholeData = data;
+		$scope.parsingFinished = function(data, identifier){
 
-			// console.log(data);
-			$scope.users = [];
-			$scope.groups = [];
-			var users = [];
-			var players = [];
-			var groups = [];
-			var uniqueGroups = [];
-			var uniquePlayers = [];
-			var tempArr = [];
-			var i, j, k, l;
-			var returnArr = [];
-
-			$scope.leastPlaysOnGroup = undefined;
-			$scope.mostPlaysOnGroup = undefined;
-			$rootScope.smallestDate = undefined;
-			$rootScope.largestDate = undefined;
-
-			for(i = 0; i < data.length; i++){
-				groups.push(data[i].groupName);
+			if(identifier === 'users'){
+				$scope.users = data;
+			}else{
+				$scope.groups = data;
 			}
-
-			$.each(groups, function(i, el){
-				if($.inArray(el, uniqueGroups) === -1){
-					uniqueGroups.push(el);
-				}
-			});
-
-			for(i = 0; i < data.length; i++){
-				players.push(data[i].playerName);
-			}
-
-			$.each(players, function(i, el){
-				if($.inArray(el, uniquePlayers) === -1){
-					uniquePlayers.push(el);
-				}
-			});
-
-			for(i = 0; i < uniquePlayers.length; i++){
-				users.push({'name': uniquePlayers[i], group: undefined,
-					'overall': {
-							duration:0, durationsArr:[],
-							level1:0,level2:0,level3:0,
-							totalPlays:0, unfinished:0,
-							exerciseDays:[]
-						},
-					'data': [
-						{	game: 'Muista näkemäsi numerosarja',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						},
-						{	game: 'Jätkänshakki',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						},
-						{	game: 'Sudoku',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						},
-						{	game: 'Tunnista sanat',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						},
-						{	game: 'Päättele salasana',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						},
-						{	game: 'Muista viesti',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						},
-						{	game: 'Rakenna kuvio mallista',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						},
-						{	game: 'Muista näkemäsi esineet',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						},
-						{	game: 'Etsi kuvat',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						},
-						{	game: 'Muista kuulemasi sanat',
-							plays: [], level1:0, level2:0,
-							level3:0, unfinished:0, duration:0, finishedPercentage:0,
-							exerciseTimeMedian:0, exerciseTimeAvg:0,
-							durationsArr:[], exerciseDays:[]
-						}
-					]
-				});
-			}
-
-			var parsedStartDate;
-			for(i = 0; i < data.length; i++){
-				for(j = 0; j < users.length; j++){
-
-					var instructors = [];
-					//console.log($scope.userRoleFilter);
-					if($scope.userRoleFilter.indexOf('Kuntoutuja') > -1){
-						instructors = ['Ella Niini Muistiohjaaja','Ella Niini','Samppa Valkama', 'Helena Launiainen', 'Tomi Nevalainen','Ulla Arifullen-', 'Ulla Arifullen-Hämäläinen', 'Ulla Arifullen-                       Hämäläinen', 'Teuvo ja Tuuli Testeri', 'Maiju Malli'];
-					}
-					if($scope.userRoleFilter.indexOf(data[i].userRole) > -1 && instructors.indexOf(data[i].playerName) === -1 && data[i].playerName === users[j].name){
-						//console.log(data[i].playerName, data[i]);
-						for(k = 0; k < users[j].data.length; k++){
-
-							//ääkköset hack
-							if(data[i].gameTitle === "Jatkanshakki"){
-								data[i].gameTitle = "Jätkänshakki";
-							}else if(data[i].gameTitle === "Muista nakemasi esineet"){
-								data[i].gameTitle = "Muista näkemäsi esineet";
-							}else if(data[i].gameTitle === "Paattele salasana"){
-								data[i].gameTitle = "Päättele salasana"
-							}else if(data[i].gameTitle === "Muista nakemasi numerosarja"){
-								data[i].gameTitle = "Muista näkemäsi numerosarja";
-							}
-
-							// if(data[i].playerName === "Tarja ja Seppo Väkevä"){
-							// 	console.log(data[i].endDate);
-							// }
-
-							if(data[i].gameTitle === users[j].data[k].game ){
-								users[j].data[k].plays.push(data[i]);
-
-								//gametime
-								if(data[i].duration){
-
-									users[j].data[k].duration += parseInt(data[i].duration,0);
-
-									users[j].data[k].durationsArr.push(parseInt(data[i].duration,0));
-
-								}else if(data[i].endDate && data[i].startDate){
-									//if duration happens to be null (?)
-									//calculate it here
-
-									var calcDur = 0;
-									var endDate = new Date(data[i].endDate);
-									var startDate = new Date(data[i].startDate);
-									calcDur = Math.abs(endDate.getTime() - startDate.getTime());
-									var timeDiff = Math.ceil(calcDur / 1000);
-
-									if(timeDiff > 4){
-										users[j].data[k].duration += parseInt(timeDiff,0);
-										users[j].data[k].durationsArr.push(parseInt(timeDiff,0));
-									}
-								}
-
-								//unfinishes quizzes
-								if(data[i].endDate.length === 0){
-									users[j].data[k].unfinished++;
-								}
-
-								//plays per difficulty level
-								if(data[i].difficulty === "Taso I"){
-									users[j].data[k].level1++;
-								}else if(data[i].difficulty === "Taso II"){
-									users[j].data[k].level2++;
-								}else{
-									users[j].data[k].level3++;
-								}
-
-								//amount of exercise days per exercise & groupname
-								for(l = 0; l < users[j].data[k].plays.length; l++){
-
-									//group
-									if(typeof users[j].group === "undefined" && users[j].data[k].plays[l]){
-										users[j].group = users[j].data[k].plays[l].groupName;
-									}
-
-									//exercise days
-									parsedStartDate = "";
-									if(users[j].data[k].plays[l].startDate.length > 10){
-										parsedStartDate = moment(users[j].data[k].plays[l].startDate).format("DD.MM.YYYY").toString();
-									}else{
-										parsedStartDate = users[j].data[k].plays[l].startDate;
-									}
-
-									if(users[j].data[k].exerciseDays.indexOf(parsedStartDate) == -1){
-										users[j].data[k].exerciseDays.push(parsedStartDate);
-									}
-
-								}
-
-								//lets find smallest and largest startDate to get active week
-								var d = new Date();
-								//days 1-31 & months 0-11
-								d.setDate(parseInt(parsedStartDate.substring(0,2),0));
-								d.setMonth(parseInt(parsedStartDate.substring(3,5),0)-1);
-
-								if($rootScope.smallestDate === undefined || d < $rootScope.smallestDate ){
-									$rootScope.smallestDate = d;
-								}
-
-								if($rootScope.largestDate === undefined || d > $rootScope.largestDate){
-									$rootScope.largestDate = d;
-								}
-							}
-						}
-					}
-				}
-			}
-
-			//finishes quizzes percentage, average/median gametime per game
-			for(i = 0; i < users.length; i++){
-				for(j = 0; j < users[i].data.length; j++){
-
-					//finished quizzes percentage
-					users[i].data[j].finishedPercentage = (users[i].data[j].plays.length - users[i].data[j].unfinished ) / users[i].data[j].plays.length;
-					if(isNaN(users[i].data[j].finishedPercentage)){
-						users[i].data[j].finishedPercentage = 0;
-					}
-
-					//exercise time median
-					users[i].data[j].exerciseTimeMedian = $scope.median(users[i].data[j].durationsArr);
-					if(isNaN(users[i].data[j].exerciseTimeMedian)){
-						users[i].data[j].exerciseTimeMedian	= 0;
-					}
-
-					//exercise time avarage
-					users[i].data[j].exerciseTimeAverage = users[i].data[j].duration / users[i].data[j].plays.length;
-					if(isNaN(users[i].data[j].exerciseTimeAverage)){
-						users[i].data[j].exerciseTimeAverage = 0;
-					}
-
-				}
-			}
-
-
-			//overalls
-			for(i = 0; i < users.length; i++){
-				for(j = 0;	j < users[i].data.length; j++){
-					//console.log(parseInt(users[i].data[j].unfinished,0));
-					//console.log(users[i].overall.duration);
-
-					//unfinished and all started games
-					users[i].overall.unfinished += parseInt(users[i].data[j].unfinished,0);
-					users[i].overall.totalPlays += parseInt(users[i].data[j].plays.length,0);
-
-					//overall plays per level
-					users[i].overall.level1 += parseInt(users[i].data[j].level1,0);
-					users[i].overall.level2 += parseInt(users[i].data[j].level2,0);
-					users[i].overall.level3 += parseInt(users[i].data[j].level3,0);
-
-					//overall duration
-					users[i].overall.duration += parseInt(users[i].data[j].duration,0);
-
-					//all duration to calculate median or avg
-					users[i].overall.durationsArr.push(parseInt(users[i].data[j].duration,0));
-
-					//amount of exercise days (all exercises)
-					for(k = 0; k < users[i].data[j].plays.length; k++){
-
-						parsedStartDate = "";
-						if(users[i].data[j].plays[k].startDate.length > 10){
-							parsedStartDate = moment(users[i].data[j].plays[k].startDate).format("DD.MM.YYYY").toString();
-						}else{
-							parsedStartDate = users[i].data[j].plays[k].startDate;
-						}
-
-						if(users[i].overall.exerciseDays.indexOf(parsedStartDate) == -1){
-							users[i].overall.exerciseDays.push(parsedStartDate);
-						}
-					}
-				}
-			}
-
-
-
-			//group overalls
-			for(i = 0; i < data.length; i++){
-				groups.push(data[i].groupName);
-			}
-
-			$.each(groups, function(i, el){
-				if($.inArray(el, uniqueGroups) === -1){
-					uniqueGroups.push(el);
-				}
-			});
-
-			groups = [];
-			var games = ['Muista näkemäsi numerosarja', 'Jätkänshakki', 'Sudoku', 'Tunnista sanat', 'Päättele salasana',
-			'Muista viesti', 'Muista näkemäsi esineet', 'Etsi kuvat', 'Muista kuulemasi sanat', 'Rakenna kuvio mallista'];
-
-			for(i = 0; i < uniqueGroups.length; i++){
-				groups.push({'name': uniqueGroups[i],
-					'leastPlays': undefined,
-					'leastTimePlayed': undefined,
-					'mostPlays': undefined,
-					'mostTimePlayed': undefined,
-					'members': [],
-					'data': [],
-					'sum': {
-						'allGamePlays': 0,
-						'unfinishedPlays':0,
-						'lvl1Plays': 0,
-						'lvl2Plays': 0,
-						'lvl3Plays': 0,
-						'duration': 0,
-					}
-				});
-
-				for(j = 0; j < games.length; j++){
-					groups[i].data[j] = {'game': games[j], 'gameData': [],
-					'overalls': {
-						'lvl1Plays': 0,
-						'lvl2Plays': 0,
-						'lvl3Plays': 0,
-						'duration': 0,
-						'unfinishedPlays': 0,
-						'finishedPercentage': 0,
-						'finishedAverage':0
-					}};
-				}
-			}
-
-			for(i = 0; i < data.length; i++){
-				for(j = 0; j < groups.length; j++){
-					for(k = 0; k < groups[j].data.length; k++){
-
-						if(groups[j].name === data[i].groupName && groups[j].data[k].game === data[i].gameTitle &&
-							$scope.userRoleFilter.indexOf(data[i].userRole) > -1){
-
-							groups[j].data[k].gameData.push(data[i]);
-						}
-
-
-						if(groups[j].name === data[i].groupName && $scope.userRoleFilter.indexOf(data[i].userRole) > -1  &&
-							groups[j].members.indexOf(data[i].playerName) === -1){
-
-							groups[j].members.push(data[i].playerName);
-						}
-
-					}
-				}
-			}
-
-			for(i = 0; i < groups.length; i++){
-				for(j = 0; j < Object.keys(groups[i].data).length; j++){
-					for(k = 0; k < groups[i].data[j].gameData.length; k++){
-
-						if(groups[i].data[j].gameData[k].difficulty === 'Taso I'){
-							groups[i].data[j].overalls.lvl1Plays++;
-						}else if(groups[i].data[j].gameData[k].difficulty === 'Taso II'){
-							groups[i].data[j].overalls.lvl2Plays++;
-						}else{
-							//joker or lvl3
-							groups[i].data[j].overalls.lvl3Plays++;
-						}
-
-						//duration might be null? wonder why
-						if(groups[i].data[j].gameData[k].duration !== null){
-							groups[i].data[j].overalls.duration += parseInt(groups[i].data[j].gameData[k].duration,0);
-
-						}else if(groups[i].data[j].gameData[k].endDate && groups[i].data[j].gameData[k].startDate){
-							//if duration happens to be null (?)
-							//calculate it here - unfinished quizzes shouldn't have endDate, right?
-
-							var calcDur = 0;
-							var endDate = new Date(groups[i].data[j].gameData[k].endDate);
-							var startDate = new Date(groups[i].data[j].gameData[k].startDate);
-							calcDur = Math.abs(endDate.getTime() - startDate.getTime());
-							var timeDiff = Math.ceil(calcDur / 1000);
-
-							if(timeDiff > 4){
-								groups[i].data[j].overalls.duration += parseInt(timeDiff,0);
-							}
-
-						}
-
-						if(groups[i].data[j].gameData[k].endDate.length === 0){
-							groups[i].data[j].overalls.unfinishedPlays++;
-
-						}
-					}
-				}
-			}
-
-
-			//least and most plays/time per group
-			for(i = 0; i < users.length; i++){
-				for(j = 0; j < groups.length; j++){
-
-					if(users[i].group === groups[j].name){
-
-						if(typeof groups[j].mostPlays === "undefined" || groups[j].mostPlays < users[i].overall.totalPlays){
-							groups[j].mostPlays = users[i].overall.totalPlays;
-						}
-
-						if(typeof groups[j].leastPlays === "undefined" || groups[j].leastPlays > users[i].overall.totalPlays){
-							groups[j].leastPlays = users[i].overall.totalPlays;
-						}
-
-						if(typeof groups[j].mostTimePlayed === "undefined" || groups[j].mostTimePlayed < users[i].overall.duration){
-							groups[j].mostTimePlayed = users[i].overall.duration;
-						}
-
-						if(typeof groups[j].leastTimePlayed === "undefined" || groups[j].leastTimePlayed > users[i].overall.duration){
-							groups[j].leastTimePlayed = users[i].overall.duration;
-						}
-
-					}
-				}
-			}
-
-
-			for(i = 0; i < data.length; i++){
-				if($scope.userRoleFilter.indexOf(data[i].userRole) > -1 ){
-					for(j = 0; j < groups.length; j++){
-
-						if(data[i].groupName === groups[j].name){
-
-							groups[j].sum.allGamePlays++;
-
-							if(data[i].endDate.length === 0){
-								groups[j].sum.unfinishedPlays++;
-							}
-
-							if(data[i].difficulty === "Taso I"){
-								groups[j].sum.lvl1Plays++;
-							}else if(data[i].difficulty === "Taso II"){
-								groups[j].sum.lvl2Plays++;
-							}else{
-								groups[j].sum.lvl3Plays++;
-							}
-
-							if(data[i].duration !== null){
-								groups[j].sum.duration += parseInt(data[i].duration,0);
-							}
-
-							for(k = 0; k < groups[j].data.length; k++){
-
-								groups[j].data[k].overalls.finishedPercentage = (groups[j].data[k].gameData.length - groups[j].data[k].overalls.unfinishedPlays) / groups[j].data[k].gameData.length;
-								if(isNaN(groups[j].data[k].overalls.finishedPercentage)){
-									groups[j].data[k].overalls.finishedPercentage = 0;
-								}
-
-
-								groups[j].data[k].overalls.finishedAverage = (groups[j].data[k].gameData.length - groups[j].data[k].overalls.unfinishedPlays) / groups[j].members.length;
-								//console.log(groups[j].data[k].overalls.finishedAverage);
-
-							}
-						}
-					}
-				}
-			}
-
-			// console.log('groups', groups);
-			//console.log('users', users);
-			console.log('parsing finished', users, groups);
-			$scope.groups = groups;
-			$scope.users = users;
 
 			$rootScope.loadingShowing = false;
 			$('#data').css('display', 'block');
@@ -716,19 +253,394 @@
 			if(!$scope.$$phase) {
 				$scope.$apply();
 			}
+
+			var parsingFinished = moment();
+			var parsingTookSeconds = parsingFinished.diff($scope.parsingStarted);
+			$log.info('parsed data: '+identifier, data);
+			$log.info('parsing data took '+ parsingTookSeconds+ ' ms');
+		};
+
+		$scope.createUser = function(name, group){
+
+			var userObj = {
+				"name": name,
+				"group": group,
+				"data": [],
+				"overall": {
+					duration: 0,
+					durationsArr: [],
+					levels: [0,0,0], //levels[playsonlevel1, playsonlevel2, playsonlevel3]
+					totalPlays: 0,
+					unfinished: 0,
+					exerciseDays: [],
+					durationMedian: 0
+				}
+			};
+
+			userObj.data = $scope.createGameObjs();
+
+			return userObj;
+		};
+
+		$scope.setDateRange = function(dateArr){
+
+			_.each(dateArr, function(date){
+				var myMoment = moment(date, 'DD.MM.YYYY');
+				if($rootScope.smallestDate === undefined || myMoment.isBefore($rootScope.smallestDate)){
+					$rootScope.smallestDate = myMoment;
+				}
+				if($rootScope.largestDate === undefined || myMoment.isAfter($rootScope.largestDate)){
+					$rootScope.largestDate = myMoment;
+				}
+			});
+
+		};
+
+		$scope.createGameObjs = function(){
+			var gameObjs = [];
+
+			var games = ['Muista näkemäsi numerosarja','Jätkänshakki','Sudoku',
+				'Tunnista sanat','Päättele salasana','Muista viesti','Rakenna kuvio mallista',
+				'Muista näkemäsi esineet','Etsi kuvat',	'Muista kuulemasi sanat'];
+
+			function createGameObj(gameName) {
+				var gameDataObj = {
+					game: gameName,
+					plays: [],
+					levels: [0,0,0], //levels[playsonlevel1, playsonlevel2, playsonlevel3]
+					unfinished: 0,
+					duration: 0,
+					finishedPercentage: 0,
+					durationsArr: [],
+					exerciseDays: [],
+					durationMedian: 0
+				};
+
+				return gameDataObj;
+			}
+
+			for(var gameIndex = 0, len = games.length; gameIndex < len; gameIndex++){
+				var gameObj = createGameObj(games[gameIndex]);
+				gameObjs.push( gameObj );
+			}
+
+			return gameObjs;
+
+		}
+
+		$scope.handleDuration = function(play){
+
+			var returnDuration = 0;
+			if(play.duration === null){
+				if(play.startDate && play.endDate){
+					var start = moment(play.startDate, ['ddd MMM DD YYYY HH:mm:ss', 'DD.MM.YYYY']);
+					var end = moment(play.endDate, ['ddd MMM DD YYYY HH:mm:ss', 'DD.MM.YYYY']);
+					returnDuration = parseInt(end.diff(start, 'seconds'));
+				}
+			}else{
+				returnDuration = parseInt(play.duration);
+			}
+
+			return returnDuration;
+
+		};
+
+		$scope.createGroup = function(groupName){
+
+			var groupObj = {
+				"name": groupName,
+				"members": [],
+				"data": [],
+				"overall": {
+					totalPlays: 0,
+					unfinished: 0,
+					levels: [0,0,0],
+					duration: 0,
+					durationsArr: [],
+					exerciseDays: []
+				}
+			};
+
+			groupObj.data = $scope.createGameObjs();
+
+			return groupObj;
+		};
+
+
+		$scope.parseUserData = function(data){
+			var users = [];
+			$rootScope.smallestDate = undefined;
+			$rootScope.largestDate = undefined;
+			$log.info('started parsing userData', data.length);
+
+			_.each(data, function(play){
+
+				var user = $scope.createUser(play.playerName, play.groupName);
+				if (_.findWhere(users, {'name': user.name}) === undefined) {
+					users.push(user);
+				}
+
+			});
+
+			_.each(data, function(play){
+				_.each(users, function(user){
+
+					//filter
+					if (_.contains($scope.userRoleFilter, play.userRole)){
+
+						if(play.playerName === user.name){
+							_.each(user.data, function(gameData){
+
+								//user statistics per game
+								if(play.gameTitle === gameData.game){
+
+									//plays
+									gameData.plays.push(play);
+
+									//unfinished plays
+									if(play.endDate.length === 0){
+										gameData.unfinished++;
+										user.overall.unfinished++;
+									}
+
+									//durations
+									var duration = $scope.handleDuration(play);
+									gameData.duration += duration;
+									gameData.durationsArr.push(duration);
+									user.overall.durationsArr.push(duration);
+
+									//exerciseDays
+									var momentDate = moment(play.startDate, ['ddd MMM DD YYYY HH:mm:ss', 'DD.MM.YYYY']).format('DD.MM.YYYY');
+									if(_.contains(gameData.exerciseDays, momentDate) === false){
+										gameData.exerciseDays.push(momentDate);
+									}
+
+									//levels
+									if(play.difficulty === 'Taso I'){
+										gameData.levels[0]++;
+										user.overall.levels[0]++;
+									}else if(play.difficulty === 'Taso II'){
+										gameData.levels[1]++;
+										user.overall.levels[1]++;
+									}else{
+										gameData.levels[2]++;
+										user.overall.levels[2]++;
+									}
+								}
+							});
+						}
+					}
+				});
+			});
+
+			//user statistics overall
+			_.each(users, function(user){
+
+				//overall duration
+				user.overall.duration = _.reduce(user.overall.durationsArr, function(memo,num){
+					return memo + num;
+				},0);
+
+				//overall duration median
+				if (user.overall.durationsArr.length > 0) {
+					user.overall.durationMedian = $scope.median(user.overall.durationsArr);
+				}
+
+				_.each(user.data, function(gameData){
+
+					//duration median per game
+					if (gameData.durationsArr.length > 0) {
+						gameData.durationMedian = $scope.median(gameData.durationsArr);
+					}
+
+					//overall plays
+					user.overall.totalPlays += gameData.plays.length;
+
+					//overall exercisedays
+					_.each(gameData.exerciseDays, function(exerciseDay){
+						if(_.contains(user.overall.exerciseDays, exerciseDay) === false){
+							user.overall.exerciseDays.push(exerciseDay);
+						}
+					});
+
+					//find and set smallest and largest date
+					$scope.setDateRange(user.overall.exerciseDays);
+
+				});
+			});
+
+			$scope.parsingFinished(users, 'users');
+
+		};
+
+
+		$scope.parseGroupData = function(data){
+			var groups = [];
+			$rootScope.smallestDate = undefined;
+			$rootScope.largestDate = undefined;
+			$log.info('started parsing groupData', data.length);
+
+			_.each(data, function(play){
+				var group = $scope.createGroup(play.groupName);
+				if (_.findWhere(groups, {'name': group.name}) === undefined) {
+					groups.push(group);
+				}
+			});
+
+			_.each(data, function(play){
+				_.each(groups, function(group){
+					if (play.groupName === group.name) {
+
+						//group members
+						if(_.contains(group.members, play.playerName) === false){
+							group.members.push(play.playerName);
+						}
+
+						_.each(group.data, function(groupGameData){
+
+							//group statistics per game
+							if(play.gameTitle === groupGameData.game){
+
+								//plays
+								groupGameData.plays.push(play);
+
+								//unfinished plays
+								if(play.endDate.length === 0){
+									groupGameData.unfinished++;
+									group.overall.unfinished++;
+								}
+
+								//durations
+								var duration = $scope.handleDuration(play);
+								groupGameData.duration += duration;
+								groupGameData.durationsArr.push(duration);
+								group.overall.durationsArr.push(duration);
+
+
+								//exerciseDays
+								var momentDate = moment(play.startDate, ['ddd MMM DD YYYY HH:mm:ss', 'DD.MM.YYYY']).format('DD.MM.YYYY');
+								if(_.contains(groupGameData.exerciseDays, momentDate) === false){
+									groupGameData.exerciseDays.push(momentDate);
+								}
+
+								//levels
+								if(play.difficulty === 'Taso I'){
+									groupGameData.levels[0]++;
+									group.overall.levels[0]++;
+								}else if(play.difficulty === 'Taso II'){
+									groupGameData.levels[1]++;
+									group.overall.levels[1]++;
+								}else{
+									groupGameData.levels[2]++;
+									group.overall.levels[2]++;
+								}
+
+							}
+						});
+					}
+				});
+			});
+
+			//group statistics overall
+			var playCountArr = [];
+			_.each(groups, function(group){
+
+				//overall duration
+				group.overall.duration = _.reduce(group.overall.durationsArr, function(memo, num){
+					return memo + num;
+				},0);
+
+				_.each(group.data, function(groupGameData){
+
+					//overall plays
+					group.overall.totalPlays += groupGameData.plays.length;
+
+					//create array to figure out least and most plays per user in group
+					_.each(groupGameData.plays, function(play){
+
+						var duration = $scope.handleDuration(play);
+
+						var obj = _.findWhere(playCountArr, {'name': play.playerName});
+						if( obj === undefined){
+
+							var user = {
+								name: play.playerName,
+								duration: duration,
+								exerciseCount: 1
+							};
+							playCountArr.push(user);
+
+						}else{
+							obj.duration += duration;
+							obj.exerciseCount++;
+						}
+
+					});
+
+					//overall exercisedays
+					_.each(groupGameData.exerciseDays, function(exerciseDay){
+						if(_.contains(group.overall.exerciseDays, exerciseDay) === false){
+							group.overall.exerciseDays.push(exerciseDay);
+						}
+					});
+
+					//find and set smallest and largest date
+					$scope.setDateRange(group.overall.exerciseDays);
+
+				});
+
+				//sort array to figure out least and most plays per user in group
+				var durationSorted = _.sortBy(playCountArr, 'duration');
+				var exerciseCountSorted = _.sortBy(playCountArr, 'exerciseCount');
+				group.leastTimePlayed = durationSorted[0].duration;
+				group.leastPlays = exerciseCountSorted[0].exerciseCount;
+				group.mostTimePlayed = durationSorted[durationSorted.length-1].duration;
+				group.mostPlays = exerciseCountSorted[exerciseCountSorted.length-1].exerciseCount;
+
+			});
+
+			$scope.parsingFinished(groups, 'groups');
+
 		};
 
 	}])
 
-	.controller('ModalInstanceController', function($scope, $modalInstance, items, $rootScope){
+	.controller('ModalInstanceController', function($scope, $modalInstance, items, dataFactory){
 
-		$rootScope.modalUser = items;
+		dataFactory.setUser(items);
 
 		$scope.close = function(){
 			$modalInstance.dismiss('close');
 		};
 
 	})
+
+	.factory('dataFactory', function(){
+		var dataFactory = {};
+		var data = {};
+		var user = {};
+
+		dataFactory.setUser = function(newUser){
+			user = newUser;
+		};
+
+		dataFactory.getUser = function(){
+			return user;
+		};
+
+		dataFactory.setData = function(newData){
+			data = newData;
+		};
+
+		dataFactory.getData = function(){
+			return data;
+		};
+
+		return dataFactory;
+
+	})
+
+
 
 	.directive('printDiv', function(){
 		//iframe print hack(ish)
@@ -757,14 +669,10 @@
 
 					var html = $(myElem).html();
 
-					//console.log(html);
-
 					PrintWithIframe(html, orientation);
 				}
 
 				function PrintWithIframe(data, orientation){
-
-					// console.log(data);
 
 					if( $('iframe#printf').size() == 0 ){
 						$('html').append('<iframe id="printf" name="printf"></iframe>');
