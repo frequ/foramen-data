@@ -162,7 +162,7 @@
 				}
 
 			}
-			
+
 			$scope.render();
 		};
 
@@ -561,12 +561,13 @@
 						var duration = $scope.handleDuration(play);
 
 						var obj = _.findWhere(playCountArr, {'name': play.playerName});
-						if( obj === undefined){
+						if (obj === undefined) {
 
 							var user = {
 								name: play.playerName,
 								duration: duration,
-								exerciseCount: 1
+								exerciseCount: 1,
+								group: play.groupName
 							};
 							playCountArr.push(user);
 
@@ -589,13 +590,30 @@
 
 				});
 
-				//sort array to figure out least and most plays per user in group
-				var durationSorted = _.sortBy(playCountArr, 'duration');
-				var exerciseCountSorted = _.sortBy(playCountArr, 'exerciseCount');
-				group.leastTimePlayed = durationSorted[0].duration;
-				group.leastPlays = exerciseCountSorted[0].exerciseCount;
-				group.mostTimePlayed = durationSorted[durationSorted.length-1].duration;
-				group.mostPlays = exerciseCountSorted[exerciseCountSorted.length-1].exerciseCount;
+				//most and least plays found and saved
+				_.each(playCountArr, function(playCount){
+
+					if (group.name === playCount.group) {
+
+						if (group.leastTimePlayed === undefined || group.leastTimePlayed > playCount.duration) {
+							group.leastTimePlayed = playCount.duration;
+						}
+
+						if (group.mostTimePlayed === undefined || group.mostTimePlayed < playCount.duration) {
+							group.mostTimePlayed = playCount.duration;
+						}
+
+						if (group.leastPlays === undefined || group.leastPlays > playCount.exerciseCount) {
+							group.leastPlays = playCount.exerciseCount;
+						}
+
+						if (group.mostPlays === undefined || group.mostPlays < playCount.exerciseCount) {
+							group.mostPlays = playCount.exerciseCount;
+						}
+
+					}
+
+				});
 
 			});
 
@@ -655,8 +673,6 @@
 
 				function PrintElem(elem){
 					var myElem = $(elem).clone();
-
-					console.log(myElem.attr('id'));
 
 					var orientation;
 					if(myElem.attr('id') === "bar-chart") {
