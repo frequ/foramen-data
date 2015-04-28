@@ -269,7 +269,7 @@
 				"overall": {
 					duration: 0,
 					durationsArr: [],
-					levels: [0,0,0], //levels[playsonlevel1, playsonlevel2, playsonlevel3]
+					levels: [0,0,0,0], //levels[playsonlevel1, playsonlevel2, playsonlevel3]
 					totalPlays: 0,
 					unfinished: 0,
 					exerciseDays: [],
@@ -307,7 +307,7 @@
 				var gameDataObj = {
 					game: gameName,
 					plays: [],
-					levels: [0,0,0], //levels[playsonlevel1, playsonlevel2, playsonlevel3]
+					levels: [0,0,0,0], //levels[playsonlevel1, playsonlevel2, playsonlevel3, playsonjoker]
 					unfinished: 0,
 					duration: 0,
 					finishedPercentage: 0,
@@ -354,7 +354,7 @@
 				"overall": {
 					totalPlays: 0,
 					unfinished: 0,
-					levels: [0,0,0],
+					levels: [0,0,0,0],
 					duration: 0,
 					durationsArr: [],
 					exerciseDays: []
@@ -366,6 +366,19 @@
 			return groupObj;
 		};
 
+		$scope.handleScandicLettersInGameTitle = function(gameTitle){
+			if (gameTitle == "Muista nakemasi numerosarja") {
+				return "Muista näkemäsi numerosarja";
+			}else if (gameTitle == "Muista nakemasi esineet") {
+				return "Muista näkemäsi esineet";
+			}else if (gameTitle == "Paattele salasana") {
+				return "Päättele salasana";
+			}else if (gameTitle == "Jatkanshakki"){
+				return "Jätkänshakki";
+			}else{
+				return gameTitle;
+			}
+		};
 
 		$scope.parseUserData = function(data){
 			var users = [];
@@ -392,7 +405,9 @@
 							_.each(user.data, function(gameData){
 
 								//user statistics per game
-								if(play.gameTitle === gameData.game){
+
+								play.gameTitle = $scope.handleScandicLettersInGameTitle(play.gameTitle);
+								if (play.gameTitle === gameData.game){
 
 									//plays
 									gameData.plays.push(play);
@@ -405,6 +420,7 @@
 
 									//durations
 									var duration = $scope.handleDuration(play);
+
 									gameData.duration += duration;
 									gameData.durationsArr.push(duration);
 									user.overall.durationsArr.push(duration);
@@ -422,9 +438,12 @@
 									}else if(play.difficulty === 'Taso II'){
 										gameData.levels[1]++;
 										user.overall.levels[1]++;
-									}else{
+									}else if(play.difficulty === "Taso III"){
 										gameData.levels[2]++;
 										user.overall.levels[2]++;
+									}else{
+										gameData.levels[3]++;
+										user.overall.levels[3]++;
 									}
 								}
 							});
@@ -489,54 +508,63 @@
 
 			_.each(data, function(play){
 				_.each(groups, function(group){
-					if (play.groupName === group.name) {
 
-						//group members
-						if(_.contains(group.members, play.playerName) === false){
-							group.members.push(play.playerName);
-						}
+					//filter
+					if (_.contains($scope.userRoleFilter, play.userRole)){
 
-						_.each(group.data, function(groupGameData){
+						if (play.groupName === group.name) {
 
-							//group statistics per game
-							if(play.gameTitle === groupGameData.game){
-
-								//plays
-								groupGameData.plays.push(play);
-
-								//unfinished plays
-								if(play.endDate.length === 0){
-									groupGameData.unfinished++;
-									group.overall.unfinished++;
-								}
-
-								//durations
-								var duration = $scope.handleDuration(play);
-								groupGameData.duration += duration;
-								groupGameData.durationsArr.push(duration);
-								group.overall.durationsArr.push(duration);
-
-
-								//exerciseDays
-								var momentDate = moment(play.startDate, ['ddd MMM DD YYYY HH:mm:ss', 'DD.MM.YYYY']).format('DD.MM.YYYY');
-								if(_.contains(groupGameData.exerciseDays, momentDate) === false){
-									groupGameData.exerciseDays.push(momentDate);
-								}
-
-								//levels
-								if(play.difficulty === 'Taso I'){
-									groupGameData.levels[0]++;
-									group.overall.levels[0]++;
-								}else if(play.difficulty === 'Taso II'){
-									groupGameData.levels[1]++;
-									group.overall.levels[1]++;
-								}else{
-									groupGameData.levels[2]++;
-									group.overall.levels[2]++;
-								}
-
+							//group members
+							if(_.contains(group.members, play.playerName) === false){
+								group.members.push(play.playerName);
 							}
-						});
+
+							_.each(group.data, function(groupGameData){
+
+								//group statistics per game
+								play.gameTitle = $scope.handleScandicLettersInGameTitle(play.gameTitle);
+								if (play.gameTitle === groupGameData.game) {
+
+									//plays
+									groupGameData.plays.push(play);
+
+									//unfinished plays
+									if(play.endDate.length === 0){
+										groupGameData.unfinished++;
+										group.overall.unfinished++;
+									}
+
+									//durations
+									var duration = $scope.handleDuration(play);
+
+									groupGameData.duration += duration;
+									groupGameData.durationsArr.push(duration);
+									group.overall.durationsArr.push(duration);
+
+									//exerciseDays
+									var momentDate = moment(play.startDate, ['ddd MMM DD YYYY HH:mm:ss', 'DD.MM.YYYY']).format('DD.MM.YYYY');
+									if(_.contains(groupGameData.exerciseDays, momentDate) === false){
+										groupGameData.exerciseDays.push(momentDate);
+									}
+
+									//levels
+									if(play.difficulty === 'Taso I'){
+										groupGameData.levels[0]++;
+										group.overall.levels[0]++;
+									}else if(play.difficulty === 'Taso II'){
+										groupGameData.levels[1]++;
+										group.overall.levels[1]++;
+									}else if(play.difficulty === "Taso III"){
+										groupGameData.levels[2]++;
+										group.overall.levels[2]++;
+									}else{
+										groupGameData.levels[3]++;
+										group.overall.levels[3]++;
+									}
+
+								}
+							});
+						}
 					}
 				});
 			});

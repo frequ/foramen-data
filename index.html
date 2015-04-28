@@ -23,12 +23,16 @@
 			Ei valittuja tiedostoja
 		</div>
 
-		<label>Suodata dataa:</label> {{loadingShowing}}<br/>
+		<label>Suodata dataa:</label><br/>
 		<div class="btn-group">
-			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Kuntoutuja',false]" uncheckable>Vain kuntoutujat</label>
-			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Läheinen',false]" uncheckable>Vain läheiset</label>
+			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Kuntoutuja', false]" uncheckable>Vain kuntoutujat</label>
+			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Läheinen', false]" uncheckable>Vain läheiset</label>
 			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Kuntoutuja','Läheinen', false]" uncheckable>Kaikki</label>
-			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Kuntoutuja',true]" uncheckable>Hae ryhmätieto (vain kuntoutujat)</label>
+		</div>
+		&nbsp;
+		<div class="btn-group">
+			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Kuntoutuja', true]" uncheckable>Hae ryhmätieto (vain kuntoutujat)</label>
+			<label class="btn btn-primary" ng-model="filterModel" ng-change="filterModelChanged()" btn-radio="['Kuntoutuja','Läheinen', true]" uncheckable>Hae ryhmätieto (kaikki)</label>
 		</div>
 	</div>
 
@@ -67,13 +71,16 @@
 						Loppuun pelattujen harjoitteiden prosentti
 					</a></th>
 					<th><a ng-click="orderByField='levels[0]'; reverseSort = !reverseSort">
-						Taso 1
+						Taso I
 					</a></th>
 					<th><a ng-click="orderByField='levels[1]'; reverseSort = !reverseSort">
-						Taso 2
+						Taso II
 					</a></th>
 					<th><a ng-click="orderByField='levels[2]'; reverseSort = !reverseSort">
-						Taso 3
+						Taso III
+					</a></th>
+					<th><a ng-click="orderByField='levels[3]'; reverseSort = !reverseSort">
+						Jokeri&shy;taso
 					</a></th>
 					<th><a ng-click="orderByField='duration'; reverseSort = !reverseSort">
 						Käytetty aika yhteensä
@@ -101,6 +108,7 @@
 					<td>{{data.levels[0]}}</td>
 					<td>{{data.levels[1]}}</td>
 					<td>{{data.levels[2]}}</td>
+					<td>{{data.levels[3]}}</td>
 					<td>{{data.duration | readableTime}}</td>
 					<td>{{data.durationMedian | readableTime}}</td>
 					<td>{{data.duration / data.plays.length | readableTime}}</td>
@@ -116,6 +124,7 @@
 					<td>{{user.overall.levels[0]}}</td>
 					<td>{{user.overall.levels[1]}}</td>
 					<td>{{user.overall.levels[2]}}</td>
+					<td>{{user.overall.levels[3]}}</td>
 					<td>{{user.overall.duration | readableTime}}</td>
 					<td>{{user.overall.durationMedian | readableTime}}</td>
 					<td>{{user.overall.duration / user.overall.totalPlays | readableTime}}</td>
@@ -156,6 +165,9 @@
 					<th><a ng-click="orderGroupsByField='levels[2]'; reverseSort = !reverseSort">
 						Taso III
 					</a></th>
+					<th><a ng-click="orderGroupsByField='levels[3]'; reverseSort = !reverseSort">
+						Jokeri&shy;taso
+					</a></th>
 					<th><a ng-click="orderGroupsByField='duration'; reverseSort = !reverseSort">
 						Harjoituksessa käytetty aika
 					</a></th>
@@ -171,6 +183,7 @@
 					<td>{{data.levels[0]}}</td>
 					<td>{{data.levels[1]}}</td>
 					<td>{{data.levels[2]}}</td>
+					<td>{{data.levels[3]}}</td>
 					<td>{{data.duration | readableTime}}</td>
 				</tr>
 
@@ -183,6 +196,7 @@
 					<td>{{group.overall.levels[0]}}</td>
 					<td>{{group.overall.levels[1]}}</td>
 					<td>{{group.overall.levels[2]}}</td>
+					<td>{{group.overall.levels[3]}}</td>
 					<td>{{group.overall.duration | readableTime}}</td>
 				</tr>
 
