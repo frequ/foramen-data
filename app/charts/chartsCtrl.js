@@ -108,7 +108,8 @@
                 });
             });
 
-            //TODO somehow include in previous loop?
+            //TODO: somehow include in previous loop?
+            //TODO: should we fill the gaps in week charts? Now, no week is shown in chart if no plays
 
             _.each(user.data, function(gameData){
                 _.each(gameData.plays, function(play){
@@ -125,6 +126,7 @@
                 });
             });
 
+
             //sorting dateLabel strings
             dayLabels.sort(function(d1,d2){
                 if( d1.substring(3,5) < d2.substring(3,5) || (d1.substring(3,5) == d2.substring(3,5) && d1.substring(0,2) < d2.substring(0,2))){
@@ -134,6 +136,16 @@
                 }else{
                     return 0;
                 }
+            });
+
+            weekLabels.sort(function(d1,d2){
+                if (d1.substring(7,8) < d2.substring(7,8)) {
+                    return -1;
+                }
+                if (d1.substring(7,8) > d2.substring(7,8)) {
+                    return 1;
+                }
+                return 0;
             });
 
             $scope.createBarData(dayLabels, dayPlays, dayData);
