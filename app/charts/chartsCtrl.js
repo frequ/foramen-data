@@ -41,6 +41,10 @@
             });
         };
 
+        var pad2 = function(number) {
+          return (number < 10 ? '0' : '') + number;
+        }
+
         $scope.drawCharts = function(user){
 
             var gameLabels = [], gameComparisonData = [];
@@ -78,7 +82,6 @@
 
                 //loop thru all the plays
                 _.each(gameData.plays, function(play){
-
                     //dayplay count for day labels
                     _.each(dayLabels, function(dayLabel){
 
@@ -100,8 +103,8 @@
 
                     //create weeklabels
                     if ($scope.multiple) {
-                        if ( _.contains(weekLabels, 'Viikko '+play.weekNum) === false) {
-                            weekLabels.push('Viikko '+play.weekNum);
+                        if ( _.contains(weekLabels, 'Viikko ' + pad2(play.weekNum)) === false) {
+                            weekLabels.push('Viikko ' + pad2(play.weekNum));
                         }
                     }
 
@@ -115,10 +118,12 @@
                 _.each(gameData.plays, function(play){
 
                         if (user.name === play.playerName) {
-                            var weekString = 'Viikko '+ play.weekNum;
+
+                            var weekString = 'Viikko ' + pad2(play.weekNum);
                             if(!weekPlays[weekString]){
                                 weekPlays[weekString] = 0;
                             }
+                            //console.log(play);
                             weekPlays[weekString]++;
 
                         }
@@ -139,10 +144,10 @@
             });
 
             weekLabels.sort(function(d1,d2){
-                if (d1.substring(7,8) < d2.substring(7,8)) {
+                if (d1.substring(7,9) < d2.substring(7,9)) {
                     return -1;
                 }
-                if (d1.substring(7,8) > d2.substring(7,8)) {
+                if (d1.substring(7,9) > d2.substring(7,9)) {
                     return 1;
                 }
                 return 0;

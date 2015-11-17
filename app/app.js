@@ -102,7 +102,13 @@
 							return function(e) {
 								var res = JSON.parse(e.target.result);
 								for(i = 0; i < res.length; i++){
-									res[i].weekNum = num;
+
+									if (res[i].startDate) {
+										res[i].weekNum = moment(res[i].startDate, ['ddd MMM DD YYYY HH:mm:ss', 'DD.MM.YYYY']).week();
+									}else{
+										res[i].weekNum = 'Unknown week';
+									}
+
 								}
 
 								tmp.push(res);
