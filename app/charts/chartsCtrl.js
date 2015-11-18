@@ -30,15 +30,28 @@
             },250);
         };
 
-        $scope.createBarData = function(labels, plays, data){
-            _.each(labels, function(label){
-                var dataObj = {
-                    "x": label,
-                    "y": [ plays[label] ],
-                    "tooltip": label + "<br/> Yhteensä harjoiteltu " + plays[label] + " kertaa"
-                };
-                data.push(dataObj);
-            });
+        $scope.createBarData = function(labels, plays, data, stringIdentifier){
+
+            if (stringIdentifier === 'days') {
+              _.each(labels, function(label){
+                  var dataObj = {
+                      "x": label,
+                      "y": [ plays[label] ],
+                      "tooltip": moment(label, ['DD.MM.YYYY']).format('DD.MM.YYYY, dddd') + "<br/> Yhteensä harjoiteltu " + plays[label] + " kertaa"
+                  };
+                  data.push(dataObj);
+              });
+            }else{
+              _.each(labels, function(label){
+                  var dataObj = {
+                      "x": label,
+                      "y": [ plays[label] ],
+                      "tooltip": label + "<br/> Yhteensä harjoiteltu " + plays[label] + " kertaa"
+                  };
+                  data.push(dataObj);
+              });
+            }
+
         };
 
         var pad2 = function(number) {
@@ -153,8 +166,8 @@
                 return 0;
             });
 
-            $scope.createBarData(dayLabels, dayPlays, dayData);
-            $scope.createBarData(weekLabels, weekPlays, weekData);
+            $scope.createBarData(dayLabels, dayPlays, dayData, 'days');
+            $scope.createBarData(weekLabels, weekPlays, weekData, 'weeks');
 
             //datas ready!
             //day play bar-chart
